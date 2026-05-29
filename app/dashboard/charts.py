@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 
+from app.utils.logger import get_logger
 from app.dashboard.analytics_engine import (
     compute_success_rate,
     compute_average_retries,
@@ -8,6 +9,8 @@ from app.dashboard.analytics_engine import (
     compute_retry_distribution,
 )
 from app.dashboard.metrics_collector import collect_workflow_metrics
+
+logger = get_logger(__name__)
 
 
 def get_success_vs_failure_dataset() -> Dict[str, Any]:

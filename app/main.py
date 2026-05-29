@@ -1,6 +1,8 @@
+import time
+import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import router
@@ -26,6 +28,24 @@ async def lifespan(app: FastAPI):
     logger.info("Database initialized.")
     yield
     logger.info("Application shutting down.")
+
+
+@app.middleware("http")
+async def request_tracing_middleware(request: Request, call_next):
+    request_id = str(uuid.uuid4())[:8]
+    method = request.method
+    path = request.url.path
+    start = time.time()
+    logger.info(f"[{request_id}] {method} {path}")
+    try:
+        response = await call_next(request)
+        elapsed = time.time() - start
+        logger.info(f"[{request_id}] {method} {path} -> {response.status_code} ({elapsed:.3f}s)")
+        return response
+    except Exception as e:
+        elapsed = time.time() - start
+        logger.error(f"[{request_id}] {method} {path} -> 500 ({elapsed:.3f}s): {str(e)}")
+        raise
 
 
 app = FastAPI(

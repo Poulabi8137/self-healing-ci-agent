@@ -1,0 +1,52 @@
+{
+  "repository_name": "my-org-my-python-service",
+  "scores": {
+    "security": 0.95,
+    "performance": 0.88,
+    "quality": 0.92,
+    "coverage": 0.75
+  },
+  "overall_score": 0.875,
+  "recommendation": "approved",
+  "details": {
+    "security": {
+      "score": 0.95,
+      "findings": [
+        "No unsafe eval or exec usage",
+        "Input sanitization present on all user-facing endpoints",
+        "SQLAlchemy ORM used (no raw SQL injection risk)"
+      ],
+      "issues": []
+    },
+    "performance": {
+      "score": 0.88,
+      "findings": [
+        "Query patterns are efficient with proper indexing",
+        "No N+1 query issues detected"
+      ],
+      "issues": [
+        "Consider adding database connection pooling for high-load scenarios"
+      ]
+    },
+    "quality": {
+      "score": 0.92,
+      "findings": [
+        "Clean, readable code with consistent naming conventions",
+        "Proper error handling with try-except blocks",
+        "Functions are well-documented with docstrings"
+      ],
+      "issues": []
+    },
+    "coverage": {
+      "score": 0.75,
+      "findings": [
+        "New code paths have corresponding test cases",
+        "Happy path is well-tested"
+      ],
+      "issues": [
+        "Edge cases not tested: empty results, malformed input, database timeout",
+        "Consider adding integration tests for the full API flow"
+      ]
+    }
+  }
+}

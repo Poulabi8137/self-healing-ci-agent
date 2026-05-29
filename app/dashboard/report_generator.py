@@ -1,8 +1,11 @@
 import datetime
 from typing import Any, Dict
 
+from app.utils.logger import get_logger
 from app.dashboard.analytics_engine import compute_full_analytics
 from app.dashboard.metrics_collector import collect_repository_metrics
+
+logger = get_logger(__name__)
 
 
 def generate_report(report_type: str = "full") -> Dict[str, Any]:
@@ -16,6 +19,8 @@ def generate_report(report_type: str = "full") -> Dict[str, Any]:
     """
     analytics = compute_full_analytics()
     repo_metrics = collect_repository_metrics()
+
+    logger.info(f"Generating report: type={report_type}")
 
     base_report: Dict[str, Any] = {
         "report_type": report_type,

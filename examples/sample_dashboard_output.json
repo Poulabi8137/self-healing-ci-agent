@@ -1,0 +1,85 @@
+{
+  "summary": {
+    "system_health": {
+      "total_workflow_runs": 150,
+      "overall_success_rate": 85.3,
+      "average_retries_per_run": 1.2
+    },
+    "validation": {
+      "pass_rate": 94.0,
+      "total_attempts": 160
+    },
+    "review": {
+      "average_score": 0.86,
+      "total_reviews": 45
+    },
+    "confidence": {
+      "overall_confidence": 0.82,
+      "average_confidence": 0.78
+    }
+  },
+  "metrics": {
+    "workflow_metrics": {
+      "total_runs": 150,
+      "total_successful": 128,
+      "total_failed": 22,
+      "total_retries": 35,
+      "total_reviews": 45,
+      "total_prs": 30,
+      "total_prs_real": 12,
+      "total_prs_simulated": 18
+    },
+    "success_rate": 85.3,
+    "average_retries": 0.23,
+    "validation_pass_rate": 94.0,
+    "average_review_score": 0.86,
+    "average_confidence": 0.78,
+    "total_repositories": 3
+  },
+  "per_repository": [
+    {
+      "repository_name": "my-org-my-python-service",
+      "total_runs": 60,
+      "successful_runs": 54,
+      "failed_runs": 6,
+      "avg_confidence": 0.85,
+      "success_rate": 90.0
+    },
+    {
+      "repository_name": "data-engineering/etl-pipeline",
+      "total_runs": 45,
+      "successful_runs": 36,
+      "failed_runs": 9,
+      "avg_confidence": 0.78,
+      "success_rate": 80.0
+    },
+    {
+      "repository_name": "frontend-team/react-dashboard",
+      "total_runs": 45,
+      "successful_runs": 38,
+      "failed_runs": 7,
+      "avg_confidence": 0.72,
+      "success_rate": 84.4
+    }
+  ],
+  "charts": {
+    "success_failure": {
+      "labels": ["Successful", "Failed"],
+      "values": [128, 22],
+      "colors": ["#28a745", "#dc3545"]
+    },
+    "retry_distribution": {
+      "labels": ["Attempt 1", "Attempt 2", "Attempt 3"],
+      "values": [20, 10, 5]
+    },
+    "review_scores": {
+      "categories": ["Security", "Performance", "Quality", "Coverage", "Overall"],
+      "scores": [0.86, 0.86, 0.86, 0.86, 0.86],
+      "average": 0.86
+    },
+    "validation_results": {
+      "labels": ["Passed", "Failed"],
+      "values": [94.0, 6.0]
+    }
+  }
+}

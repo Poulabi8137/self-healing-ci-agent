@@ -1,0 +1,59 @@
+=== CI/CD Pipeline Failure Logs - Sample #1 ===
+Repository: my-org/my-python-service
+Workflow: Test & Lint
+Run ID: 482731
+
+[2025-01-15T10:15:23Z] Cloning repository...
+[2025-01-15T10:15:25Z] Installing dependencies...
+[2025-01-15T10:15:45Z] Running lint checks...
+  src/app.py:42:1: F401 'os' imported but unused
+  src/app.py:85:5: E303 too many blank lines (3)
+  src/models.py:12:1: F811 redefinition of unused 'get_user' from line 8
+[2025-01-15T10:15:47Z] Lint failed with 3 errors.
+
+[2025-01-15T10:15:48Z] Running unit tests...
+  test_api.py::test_create_user FAILED
+  test_api.py::test_get_users FAILED
+  test_models.py::test_user_model PASSED
+  test_services.py::test_email_service PASSED
+
+  FAILURES:
+  test_api.py:42: in test_create_user
+      response = client.post("/api/users", json={"name": "Test"})
+      assert response.status_code == 201
+      AssertionError: Expected 201, got 500
+
+  test_api.py:85: in test_get_users
+      response = client.get("/api/users")
+      assert response.status_code == 200
+      AssertionError: Expected 200, got 500
+
+[2025-01-15T10:15:52Z] Tests failed: 2 passed, 2 failed, 0 skipped
+[2025-01-15T10:15:52Z] Pipeline failed.
+
+=== CI/CD Pipeline Failure Logs - Sample #2 ===
+Repository: data-engineering/etl-pipeline
+Workflow: Build & Deploy
+Run ID: 89321
+
+[2025-01-14T22:30:00Z] Cloning repository...
+[2025-01-14T22:30:05Z] Building Docker image...
+  Step 1/12 : FROM python:3.11-slim
+  Step 7/12 : RUN pip install -r requirements.txt
+  ERROR: Could not find a version that satisfies the requirement pandas==2.1.0
+  ERROR: No matching distribution found for pandas==2.1.0
+[2025-01-14T22:30:30Z] Build failed.
+
+=== CI/CD Pipeline Failure Logs - Sample #3 ===
+Repository: frontend-team/react-dashboard
+Workflow: Deploy to Staging
+Run ID: 128374
+
+[2025-01-13T14:00:00Z] Installing dependencies...
+[2025-01-13T14:01:00Z] Running build...
+  > react-dashboard@1.0.0 build
+  > react-scripts build
+  Creating an optimized production build...
+  Failed to compile.
+  Module not found: Error: Can't resolve '@mui/icons-material' in 'src/components'
+[2025-01-13T14:01:15Z] Build failed.

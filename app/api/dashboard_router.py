@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.utils.logger import get_logger
 from app.dashboard.analytics_engine import compute_full_analytics
 from app.dashboard.benchmark_service import get_benchmark_summary, get_repository_benchmark
 from app.dashboard.metrics_collector import collect_workflow_metrics, collect_repository_metrics
@@ -12,26 +13,32 @@ from app.dashboard.charts import (
     get_pr_statistics_dataset,
 )
 
+logger = get_logger(__name__)
+
 router = APIRouter()
 
 
 @router.get("/summary")
 async def api_dashboard_summary():
+    logger.info("Dashboard summary requested")
     return get_benchmark_summary()
 
 
 @router.get("/metrics")
 async def api_dashboard_metrics():
+    logger.info("Dashboard metrics requested")
     return compute_full_analytics()
 
 
 @router.get("/repositories")
 async def api_dashboard_repositories():
+    logger.info("Dashboard repositories requested")
     return collect_repository_metrics()
 
 
 @router.get("/reports")
 async def api_dashboard_reports(report_type: str = "full"):
+    logger.info(f"Dashboard report requested: type={report_type}")
     return generate_report(report_type)
 
 

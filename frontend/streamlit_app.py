@@ -1,4 +1,25 @@
+import requests
 import streamlit as st
+
+API_BASE_URL = "http://localhost:8000"
+
+
+def _fetch(endpoint: str, default=None):
+    try:
+        resp = requests.get(f"{API_BASE_URL}{endpoint}", timeout=5)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return default
+
+
+def refresh_dashboard_data():
+    st.session_state["dash_summary"] = _fetch("/dashboard/summary", {})
+    st.session_state["dash_metrics"] = _fetch("/dashboard/metrics", {})
+    st.session_state["dash_repos"] = _fetch("/dashboard/repositories", [])
+    st.session_state["dash_review"] = _fetch("/dashboard/charts/review-scores", {})
+    st.session_state["dash_pr"] = _fetch("/dashboard/charts/pr-statistics", {})
+    st.session_state["dash_validation"] = _fetch("/dashboard/charts/validation-results", {})
 
 st.set_page_config(
     page_title="Self-Healing AI CI/CD Agent",
@@ -26,6 +47,12 @@ with st.sidebar:
     st.markdown("---")
     st.header("CI/CD Analysis & Fix")
     st.caption("Enter logs in the main panel.")
+
+    st.markdown("---")
+    st.header("Dashboard")
+    if st.button("Refresh Dashboard Data"):
+        refresh_dashboard_data()
+        st.success("Dashboard refreshed!")
 
     st.markdown("---")
     st.caption("Self-Healing AI CI/CD Agent v0.1.0")
@@ -288,71 +315,95 @@ with st.container(border=True):
 st.markdown("---")
 st.header("Benchmark Dashboard")
 
+if "dash_summary" not in st.session_state:
+    refresh_dashboard_data()
+
 dash_tab1, dash_tab2, dash_tab3, dash_tab4, dash_tab5, dash_tab6 = st.tabs(
     ["System Overview", "Repository Analytics", "Retry Analytics", "Validation Analytics", "Review Analytics", "PR Analytics"]
 )
 
+summary = st.session_state.get("dash_summary", {})
+metrics = st.session_state.get("dash_metrics", {})
+repos = st.session_state.get("dash_repos", [])
+review = st.session_state.get("dash_review", {})
+pr_stats = st.session_state.get("dash_pr", {})
+validation = st.session_state.get("dash_validation", {})
+
 with dash_tab1:
     st.subheader("System Overview")
+    health = summary.get("system_health", {})
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("Total Runs", "—")
+        st.metric("Total Runs", health.get("total_workflow_runs", "—"))
     with c2:
-        st.metric("Success Rate", "—")
+        sr = health.get("overall_success_rate", "—")
+        st.metric("Success Rate", f"{sr:.1f}%" if isinstance(sr, (int, float)) else sr)
     with c3:
-        st.metric("Avg Retries", "—")
+        ar = health.get("average_retries_per_run", "—")
+        st.metric("Avg Retries", f"{ar:.2f}" if isinstance(ar, (int, float)) else ar)
     with c4:
-        st.metric("Avg Confidence", "—")
-    st.caption("Data available from `GET /dashboard/summary`.")
+        ac = summary.get("confidence", {}).get("overall_confidence", "—")
+        st.metric("Avg Confidence", f"{ac:.2f}" if isinstance(ac, (int, float)) else ac)
 
 with dash_tab2:
     st.subheader("Repository Analytics")
-    st.caption("Per-repository metrics available from `GET /dashboard/repositories`.")
-    st.info("Repository-level statistics will appear here after workflow runs.")
+    if repos:
+        data = {
+            "Repository": [r.get("repository_name", "") for r in repos],
+            "Total Runs": [r.get("total_runs", 0) for r in repos],
+            "Success Rate": [f'{r.get("success_rate", 0):.1f}%' for r in repos],
+            "Avg Confidence": [f'{r.get("avg_confidence", 0):.2f}' for r in repos],
+        }
+        st.dataframe(data, use_container_width=True)
+    else:
+        st.info("No repository data yet. Run workflows to populate.")
 
 with dash_tab3:
     st.subheader("Retry Analytics")
+    wm = metrics.get("workflow_metrics", {})
+    rd = metrics.get("retry_distribution", {})
     rc1, rc2, rc3 = st.columns(3)
     with rc1:
-        st.metric("Total Retries", "—")
+        st.metric("Total Retries", wm.get("total_retries", "—"))
     with rc2:
-        st.metric("Avg Retries/Run", "—")
+        ar = metrics.get("average_retries", "—")
+        st.metric("Avg Retries/Run", f"{ar:.2f}" if isinstance(ar, (int, float)) else ar)
     with rc3:
-        st.metric("Retry Distribution", "—")
-    st.caption("Retry data available from `GET /dashboard/metrics`.")
+        st.metric("Retry Distribution", f"{len(rd)} levels" if rd else "—")
+    if rd:
+        st.caption("Attempt distribution: " + ", ".join(f"{k}: {v}" for k, v in sorted(rd.items())))
 
 with dash_tab4:
     st.subheader("Validation Analytics")
+    vl = validation.get("labels", [])
+    vv = validation.get("values", [])
+    pass_rate = vv[0] if len(vv) > 0 else "—"
+    fail_rate = vv[1] if len(vv) > 1 else "—"
     vc1, vc2 = st.columns(2)
     with vc1:
-        st.metric("Validation Pass Rate", "—")
+        st.metric("Validation Pass Rate", f"{pass_rate}%" if isinstance(pass_rate, (int, float)) else "—")
     with vc2:
-        st.metric("Total Attempts", "—")
-    st.caption("Validation data available from `GET /dashboard/charts/validation-results`.")
+        st.metric("Validation Fail Rate", f"{fail_rate}%" if isinstance(fail_rate, (int, float)) else "—")
 
 with dash_tab5:
     st.subheader("Review Analytics")
-    rvc1, rvc2, rvc3, rvc4, rvc5 = st.columns(5)
-    with rvc1:
-        st.metric("Security", "—")
-    with rvc2:
-        st.metric("Performance", "—")
-    with rvc3:
-        st.metric("Quality", "—")
-    with rvc4:
-        st.metric("Coverage", "—")
-    with rvc5:
-        st.metric("Overall", "—")
-    st.caption("Review data available from `GET /dashboard/charts/review-scores`.")
+    cats = review.get("categories", ["Security", "Performance", "Quality", "Coverage", "Overall"])
+    scores = review.get("scores", [])
+    cols = st.columns(len(cats))
+    for i, cat in enumerate(cats):
+        with cols[i]:
+            s = scores[i] if i < len(scores) else "—"
+            st.metric(cat, f"{s:.2f}" if isinstance(s, (int, float)) else s)
 
 with dash_tab6:
     st.subheader("PR Analytics")
+    pr_labels = pr_stats.get("labels", ["Simulated PRs", "Real PRs"])
+    pr_values = pr_stats.get("values", [])
     pc1, pc2 = st.columns(2)
     with pc1:
-        st.metric("Total PRs", "—")
+        st.metric(pr_labels[0] if len(pr_labels) > 0 else "Simulated", pr_values[0] if len(pr_values) > 0 else "—")
     with pc2:
-        st.metric("Real PRs", "—")
-    st.caption("PR statistics available from `GET /dashboard/charts/pr-statistics`.")
+        st.metric(pr_labels[1] if len(pr_labels) > 1 else "Real", pr_values[1] if len(pr_values) > 1 else "—")
 
 st.markdown("---")
 st.caption("Built with FastAPI, LangChain, Streamlit & DeepSeek")
