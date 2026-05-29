@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     max_retries: int = 3
     retry_delay: float = 1.0
 
+    # Retry workflow
+    max_retry_attempts: int = 3
+
     # Chunking
     chunk_size: int = 1000
     chunk_overlap: int = 200

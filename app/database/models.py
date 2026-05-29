@@ -59,6 +59,49 @@ class Fix(Base):
         return f"<Fix(id={self.id}, failure_id={self.failure_id}, status='{self.status}')>"
 
 
+class RetryAttempt(Base):
+    __tablename__ = "retry_attempts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repository_name = Column(String(255), nullable=False)
+    attempt_number = Column(Integer, nullable=False)
+    fix_summary = Column(Text)
+    validation_status = Column(String(50), default="unknown")
+    confidence_score = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f"<RetryAttempt(id={self.id}, repo='{self.repository_name}', attempt={self.attempt_number}, status='{self.validation_status}')>"
+
+
+class ReviewResult(Base):
+    __tablename__ = "review_results"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repository_name = Column(String(255), nullable=False)
+    overall_score = Column(Float, default=0.0)
+    recommendation = Column(String(50), default="pending")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f"<ReviewResult(id={self.id}, repo='{self.repository_name}', score={self.overall_score}, rec='{self.recommendation}')>"
+
+
+class PRRecord(Base):
+    __tablename__ = "pr_records"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repository_name = Column(String(255), nullable=False)
+    branch_name = Column(String(255))
+    pr_title = Column(Text)
+    status = Column(String(50), default="simulated")
+    dry_run = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f"<PRRecord(id={self.id}, repo='{self.repository_name}', status='{self.status}', dry_run={self.dry_run})>"
+
+
 class Metric(Base):
     __tablename__ = "metrics"
 

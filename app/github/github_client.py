@@ -63,6 +63,55 @@ class GitHubClient:
             logger.error(f"Failed to fetch logs: {e.response.status_code}")
             raise
 
+    async def create_branch(self, repo_full_name: str, branch_name: str, base_branch: str = "main") -> Dict[str, Any]:
+        """Create a new branch in the repository.
+
+        Args:
+            repo_full_name: Full repository name (e.g. 'owner/repo').
+            branch_name: Name of the new branch.
+            base_branch: Source branch to branch from.
+
+        Returns:
+            GitHub API response for the reference creation.
+        """
+        # Get the SHA of the base branch tip
+        base_ref = await self._request("GET", f"/repos/{repo_full_name}/git/ref/heads/{base_branch}")
+        sha = base_ref["object"]["sha"]
+
+        payload = {
+            "ref": f"refs/heads/{branch_name}",
+            "sha": sha,
+        }
+        return await self._request("POST", f"/repos/{repo_full_name}/git/refs", json=payload)
+
+    async def create_pr(
+        self,
+        repo_full_name: str,
+        title: str,
+        head: str,
+        base: str = "main",
+        body: str = "",
+    ) -> Dict[str, Any]:
+        """Create a pull request in the repository.
+
+        Args:
+            repo_full_name: Full repository name (e.g. 'owner/repo').
+            title: PR title.
+            head: Source branch name.
+            base: Target branch name.
+            body: PR description body.
+
+        Returns:
+            GitHub API response for the created PR.
+        """
+        payload = {
+            "title": title,
+            "head": head,
+            "base": base,
+            "body": body,
+        }
+        return await self._request("POST", f"/repos/{repo_full_name}/pulls", json=payload)
+
     async def close(self):
         if self._client:
             await self._client.aclose()

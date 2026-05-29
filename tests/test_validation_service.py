@@ -3,6 +3,7 @@ import pytest
 from app.validation.validation_service import validate_fix
 
 
+@pytest.mark.asyncio
 class TestValidateFix:
     async def test_unknown_repository(self):
         report = await validate_fix(

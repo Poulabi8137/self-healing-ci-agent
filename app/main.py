@@ -8,6 +8,9 @@ from app.api.rag_router import router as rag_router
 from app.api.analysis_router import router as analysis_router
 from app.api.fix_router import router as fix_router
 from app.api.validation_router import router as validation_router
+from app.api.retry_router import router as retry_router
+from app.api.review_router import router as review_router
+from app.api.pr_router import router as pr_router
 from app.config.settings import settings
 from app.database.db import init_db
 from app.utils.logger import get_logger
@@ -43,6 +46,9 @@ app.include_router(rag_router, prefix="/rag")
 app.include_router(analysis_router, prefix="/analysis")
 app.include_router(fix_router, prefix="/fix")
 app.include_router(validation_router, prefix="/validation")
+app.include_router(retry_router, prefix="/retry")
+app.include_router(review_router, prefix="/review")
+app.include_router(pr_router, prefix="/pr")
 
 
 if __name__ == "__main__":
