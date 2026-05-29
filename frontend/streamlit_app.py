@@ -286,4 +286,73 @@ with st.container(border=True):
     st.text_area("PR Description", value="—", height=120, disabled=True, key="pr_desc_display")
 
 st.markdown("---")
+st.header("Benchmark Dashboard")
+
+dash_tab1, dash_tab2, dash_tab3, dash_tab4, dash_tab5, dash_tab6 = st.tabs(
+    ["System Overview", "Repository Analytics", "Retry Analytics", "Validation Analytics", "Review Analytics", "PR Analytics"]
+)
+
+with dash_tab1:
+    st.subheader("System Overview")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.metric("Total Runs", "—")
+    with c2:
+        st.metric("Success Rate", "—")
+    with c3:
+        st.metric("Avg Retries", "—")
+    with c4:
+        st.metric("Avg Confidence", "—")
+    st.caption("Data available from `GET /dashboard/summary`.")
+
+with dash_tab2:
+    st.subheader("Repository Analytics")
+    st.caption("Per-repository metrics available from `GET /dashboard/repositories`.")
+    st.info("Repository-level statistics will appear here after workflow runs.")
+
+with dash_tab3:
+    st.subheader("Retry Analytics")
+    rc1, rc2, rc3 = st.columns(3)
+    with rc1:
+        st.metric("Total Retries", "—")
+    with rc2:
+        st.metric("Avg Retries/Run", "—")
+    with rc3:
+        st.metric("Retry Distribution", "—")
+    st.caption("Retry data available from `GET /dashboard/metrics`.")
+
+with dash_tab4:
+    st.subheader("Validation Analytics")
+    vc1, vc2 = st.columns(2)
+    with vc1:
+        st.metric("Validation Pass Rate", "—")
+    with vc2:
+        st.metric("Total Attempts", "—")
+    st.caption("Validation data available from `GET /dashboard/charts/validation-results`.")
+
+with dash_tab5:
+    st.subheader("Review Analytics")
+    rvc1, rvc2, rvc3, rvc4, rvc5 = st.columns(5)
+    with rvc1:
+        st.metric("Security", "—")
+    with rvc2:
+        st.metric("Performance", "—")
+    with rvc3:
+        st.metric("Quality", "—")
+    with rvc4:
+        st.metric("Coverage", "—")
+    with rvc5:
+        st.metric("Overall", "—")
+    st.caption("Review data available from `GET /dashboard/charts/review-scores`.")
+
+with dash_tab6:
+    st.subheader("PR Analytics")
+    pc1, pc2 = st.columns(2)
+    with pc1:
+        st.metric("Total PRs", "—")
+    with pc2:
+        st.metric("Real PRs", "—")
+    st.caption("PR statistics available from `GET /dashboard/charts/pr-statistics`.")
+
+st.markdown("---")
 st.caption("Built with FastAPI, LangChain, Streamlit & DeepSeek")

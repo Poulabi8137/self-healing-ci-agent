@@ -102,6 +102,57 @@ class PRRecord(Base):
         return f"<PRRecord(id={self.id}, repo='{self.repository_name}', status='{self.status}', dry_run={self.dry_run})>"
 
 
+class BenchmarkRun(Base):
+    __tablename__ = "benchmark_runs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repository_name = Column(String(255), nullable=False)
+    total_attempts = Column(Integer, default=0)
+    successful_attempts = Column(Integer, default=0)
+    failed_attempts = Column(Integer, default=0)
+    avg_confidence = Column(Float, default=0.0)
+    validation_pass_rate = Column(Float, default=0.0)
+    avg_review_score = Column(Float, default=0.0)
+    pr_created = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f"<BenchmarkRun(id={self.id}, repo='{self.repository_name}', attempts={self.total_attempts})>"
+
+
+class RepositoryMetrics(Base):
+    __tablename__ = "repository_metrics"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repository_name = Column(String(255), nullable=False, unique=True)
+    total_runs = Column(Integer, default=0)
+    total_retries = Column(Integer, default=0)
+    avg_retries_per_run = Column(Float, default=0.0)
+    success_rate = Column(Float, default=0.0)
+    avg_confidence = Column(Float, default=0.0)
+    last_run_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f"<RepoMetrics(id={self.id}, repo='{self.repository_name}', rate={self.success_rate})>"
+
+
+class WorkflowMetrics(Base):
+    __tablename__ = "workflow_metrics"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    workflow_type = Column(String(100), nullable=False)
+    total_runs = Column(Integer, default=0)
+    successful_runs = Column(Integer, default=0)
+    failed_runs = Column(Integer, default=0)
+    avg_duration_seconds = Column(Float, default=0.0)
+    recorded_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f"<WorkflowMetrics(id={self.id}, type='{self.workflow_type}', runs={self.total_runs})>"
+
+
 class Metric(Base):
     __tablename__ = "metrics"
 
