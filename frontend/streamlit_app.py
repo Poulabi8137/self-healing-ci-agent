@@ -1,3 +1,4 @@
+import concurrent.futures
 import requests
 import streamlit as st
 
@@ -14,12 +15,25 @@ def _fetch(endpoint: str, default=None):
 
 
 def refresh_dashboard_data():
-    st.session_state["dash_summary"] = _fetch("/dashboard/summary", {})
-    st.session_state["dash_metrics"] = _fetch("/dashboard/metrics", {})
-    st.session_state["dash_repos"] = _fetch("/dashboard/repositories", [])
-    st.session_state["dash_review"] = _fetch("/dashboard/charts/review-scores", {})
-    st.session_state["dash_pr"] = _fetch("/dashboard/charts/pr-statistics", {})
-    st.session_state["dash_validation"] = _fetch("/dashboard/charts/validation-results", {})
+    endpoints = {
+        "dash_summary": ("/dashboard/summary", {}),
+        "dash_metrics": ("/dashboard/metrics", {}),
+        "dash_repos": ("/dashboard/repositories", []),
+        "dash_review": ("/dashboard/charts/review-scores", {}),
+        "dash_pr": ("/dashboard/charts/pr-statistics", {}),
+        "dash_validation": ("/dashboard/charts/validation-results", {}),
+    }
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+        fut_to_key = {
+            executor.submit(_fetch, endpoint, default): key
+            for key, (endpoint, default) in endpoints.items()
+        }
+        for future in concurrent.futures.as_completed(fut_to_key):
+            key = fut_to_key[future]
+            try:
+                st.session_state[key] = future.result()
+            except Exception:
+                st.session_state[key] = endpoints[key][1]
 
 st.set_page_config(
     page_title="Self-Healing AI CI/CD Agent",

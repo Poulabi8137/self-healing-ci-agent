@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 from typing import Any, Dict, List, Optional
 
@@ -11,14 +12,14 @@ from app.database.db import SessionLocal
 logger = get_logger(__name__)
 
 
-def _save_retry_attempt(
+def _save_retry_attempt_sync(
     repository_name: str,
     attempt_number: int,
     fix_summary: str,
     validation_status: str,
     confidence_score: float,
 ) -> None:
-    """Persist a retry attempt to the database.
+    """Persist a retry attempt to the database (synchronous helper).
 
     Args:
         repository_name: Repository identifier.
@@ -46,6 +47,30 @@ def _save_retry_attempt(
             db.close()
     except Exception as e:
         logger.warning(f"Failed to save retry attempt to database: {e}")
+
+
+async def _save_retry_attempt(
+    repository_name: str,
+    attempt_number: int,
+    fix_summary: str,
+    validation_status: str,
+    confidence_score: float,
+) -> None:
+    """Persist a retry attempt to the database asynchronously.
+
+    Offloads the synchronous DB write to a thread pool to avoid
+    blocking the async event loop.
+    """
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(
+        None,
+        _save_retry_attempt_sync,
+        repository_name,
+        attempt_number,
+        fix_summary,
+        validation_status,
+        confidence_score,
+    )
 
 
 async def run_retry_workflow(
@@ -126,7 +151,7 @@ async def run_retry_workflow(
         retry_history.append(history_entry)
 
         # --- Persist to database ---
-        _save_retry_attempt(
+        await _save_retry_attempt(
             repository_name=repository_name,
             attempt_number=attempt,
             fix_summary=fix_result.get("fix_summary", ""),

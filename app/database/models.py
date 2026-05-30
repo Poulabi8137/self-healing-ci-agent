@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, Index, Integer, String, Text
 
 from app.database.db import Base
 
@@ -62,6 +62,11 @@ class Fix(Base):
 class RetryAttempt(Base):
     __tablename__ = "retry_attempts"
 
+    __table_args__ = (
+        Index("idx_retry_repo_status_conf", "repository_name", "validation_status", "confidence_score"),
+        Index("idx_retry_attempt_number", "attempt_number"),
+    )
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     repository_name = Column(String(255), nullable=False)
     attempt_number = Column(Integer, nullable=False)
@@ -77,6 +82,10 @@ class RetryAttempt(Base):
 class ReviewResult(Base):
     __tablename__ = "review_results"
 
+    __table_args__ = (
+        Index("idx_review_repo", "repository_name"),
+    )
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     repository_name = Column(String(255), nullable=False)
     overall_score = Column(Float, default=0.0)
@@ -89,6 +98,11 @@ class ReviewResult(Base):
 
 class PRRecord(Base):
     __tablename__ = "pr_records"
+
+    __table_args__ = (
+        Index("idx_pr_repo", "repository_name"),
+        Index("idx_pr_dry_run", "dry_run"),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     repository_name = Column(String(255), nullable=False)

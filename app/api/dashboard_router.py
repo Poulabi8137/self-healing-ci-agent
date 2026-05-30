@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter
 
 from app.utils.logger import get_logger
@@ -21,47 +23,47 @@ router = APIRouter()
 @router.get("/summary")
 async def api_dashboard_summary():
     logger.info("Dashboard summary requested")
-    return get_benchmark_summary()
+    return await asyncio.to_thread(get_benchmark_summary)
 
 
 @router.get("/metrics")
 async def api_dashboard_metrics():
     logger.info("Dashboard metrics requested")
-    return compute_full_analytics()
+    return await asyncio.to_thread(compute_full_analytics)
 
 
 @router.get("/repositories")
 async def api_dashboard_repositories():
     logger.info("Dashboard repositories requested")
-    return collect_repository_metrics()
+    return await asyncio.to_thread(collect_repository_metrics)
 
 
 @router.get("/reports")
 async def api_dashboard_reports(report_type: str = "full"):
     logger.info(f"Dashboard report requested: type={report_type}")
-    return generate_report(report_type)
+    return await asyncio.to_thread(generate_report, report_type)
 
 
 @router.get("/charts/success-failure")
 async def api_charts_success_failure():
-    return get_success_vs_failure_dataset()
+    return await asyncio.to_thread(get_success_vs_failure_dataset)
 
 
 @router.get("/charts/retry-distribution")
 async def api_charts_retry_distribution():
-    return get_retry_distribution_dataset()
+    return await asyncio.to_thread(get_retry_distribution_dataset)
 
 
 @router.get("/charts/review-scores")
 async def api_charts_review_scores():
-    return get_review_scores_dataset()
+    return await asyncio.to_thread(get_review_scores_dataset)
 
 
 @router.get("/charts/validation-results")
 async def api_charts_validation_results():
-    return get_validation_results_dataset()
+    return await asyncio.to_thread(get_validation_results_dataset)
 
 
 @router.get("/charts/pr-statistics")
 async def api_charts_pr_statistics():
-    return get_pr_statistics_dataset()
+    return await asyncio.to_thread(get_pr_statistics_dataset)

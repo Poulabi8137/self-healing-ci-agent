@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, Optional
 
 from app.utils.logger import get_logger
@@ -8,12 +9,12 @@ from app.database.db import SessionLocal
 logger = get_logger(__name__)
 
 
-def _save_review_result(
+def _save_review_result_sync(
     repository_name: str,
     overall_score: float,
     recommendation: str,
 ) -> None:
-    """Persist a review result to the database.
+    """Persist a review result to the database (synchronous helper).
 
     Args:
         repository_name: Repository identifier.
@@ -37,6 +38,26 @@ def _save_review_result(
             db.close()
     except Exception as e:
         logger.warning(f"Failed to save review result to database: {e}")
+
+
+async def _save_review_result(
+    repository_name: str,
+    overall_score: float,
+    recommendation: str,
+) -> None:
+    """Persist a review result to the database asynchronously.
+
+    Offloads the synchronous DB write to a thread pool to avoid
+    blocking the async event loop.
+    """
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(
+        None,
+        _save_review_result_sync,
+        repository_name,
+        overall_score,
+        recommendation,
+    )
 
 
 async def run_review_workflow(
@@ -89,7 +110,7 @@ async def run_review_workflow(
     )
 
     # 4. Persist to database
-    _save_review_result(
+    await _save_review_result(
         repository_name=repository_name,
         overall_score=review_report.get("overall_score", 0.0),
         recommendation=review_report.get("recommendation", "unknown"),

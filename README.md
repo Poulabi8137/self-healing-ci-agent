@@ -86,80 +86,107 @@ CI/CD pipelines are the heartbeat of modern software delivery — yet they fail 
 ## System Architecture
 
 ```mermaid
-graph LR
-    subgraph Input
-        LOGS[CI/CD Logs]
-        REPO[Repository]
+%%{init: {"flowchart": {"nodeSpacing": 70, "rankSpacing": 120, "htmlLabels": true}}}%%
+graph TB
+    classDef input fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef rag fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef analysis fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef fix fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef validation fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    classDef retry fill:#fbe9e7,stroke:#bf360c,stroke-width:2px
+    classDef review fill:#e0f7fa,stroke:#00695c,stroke-width:2px
+    classDef pr fill:#fff8e1,stroke:#f57f17,stroke-width:2px
+    classDef storage fill:#f5f5f5,stroke:#424242,stroke-width:2px,stroke-dasharray:5 5
+    classDef dashboard fill:#e8eaf6,stroke:#283593,stroke-width:2px
+    classDef external fill:#efebe9,stroke:#4e342e,stroke-width:2px
+
+    subgraph "📥 1. Input — CI/CD Events"
+        LOGS["📄 CI/CD Logs"]
+        REPO["📁 Repository"]
     end
 
-    subgraph "RAG Layer"
-        IDX[Index Pipeline]
-        VS[(Vector Store)]
-        RET[Retriever]
+    subgraph "🧠 2. RAG — Context Retrieval"
+        IDX["Indexing Pipeline"]
+        VS["(Vector Store — FAISS)"]
+        RET["Semantic Retriever"]
     end
 
-    subgraph "Analysis"
-        LP[Log Parser]
-        EC[Error Classifier]
-        DA[Debug Agent]
+    subgraph "🔬 3. Root Cause Analysis"
+        LP["Log Parser"]
+        EC["Error Classifier"]
+        DA["🤖 Debug Agent"]
     end
 
-    subgraph "Fix Generation"
-        FA[Fix Agent]
+    subgraph "🛠️ 4. Fix Generation"
+        FA["🤖 Fix Agent"]
     end
 
-    subgraph "Validation"
-        SV[Syntax Validator]
-        BV[Build Validator]
-        TR[Test Runner]
+    subgraph "✅ 5. Validation"
+        SV["Syntax Validator (AST)"]
+        BV["Build Validator"]
+        TR["Test Runner (pytest)"]
     end
 
-    subgraph "Retry Loop"
-        RA[Retry Agent]
+    subgraph "🔄 6. Retry Loop"
+        RA["🤖 Retry Agent"]
     end
 
-    subgraph "Review"
-        ORC[Orchestrator]
-        SEC[Security]
-        PER[Performance]
-        QAL[Quality]
-        COV[Coverage]
+    subgraph "📋 7. Multi-Agent Review"
+        ORC["Review Orchestrator"]
+        SEC["🔒 Security Reviewer"]
+        PER["⚡ Performance Reviewer"]
+        QAL["📐 Quality Reviewer"]
+        COV["🧪 Coverage Reviewer"]
     end
 
-    subgraph "PR Automation"
-        BM[Branch Manager]
-        CM[Commit Manager]
-        PG[PR Generator]
+    subgraph "🚀 8. PR Automation"
+        BM["Branch Manager"]
+        CM["Commit Manager"]
+        PG["PR Generator"]
     end
 
-    subgraph "Dashboard"
-        MC[Metrics Collector]
-        AE[Analytics Engine]
-        BS[Benchmark Service]
+    subgraph "💾 9. Persistence"
+        DB["(SQLite Database)"]
     end
 
-    subgraph "Storage"
-        DB[(SQLite)]
+    subgraph "📊 10. Dashboard & Benchmarks"
+        MC["Metrics Collector"]
+        AE["Analytics Engine"]
+        BS["Benchmark Service"]
     end
 
+    subgraph "🌐 11. External Integrations"
+        GHAPI["GitHub API"]
+        LLM["DeepSeek LLM"]
+    end
+
+    %% RAG Pipeline
     REPO --> IDX
     IDX --> VS
     LOGS --> LP
     LP --> EC
     EC --> DA
-    DA --> RET
-    RET --> VS
+    DA -.->|"query ctx"| RET
+    RET -.-> VS
+
+    %% Main pipeline
     DA --> FA
     FA --> SV
     SV --> BV
     BV --> TR
-    TR -->|Fail| RA
-    RA --> FA
-    TR -->|Pass| ORC
+
+    %% Retry loop
+    TR -->|"✗ fail"| RA
+    RA -->|"retry fix"| FA
+
+    %% Review
+    TR -->|"✓ pass"| ORC
     ORC --> SEC
     ORC --> PER
     ORC --> QAL
     ORC --> COV
+
+    %% PR pipeline
     SEC --> BM
     PER --> BM
     QAL --> CM
@@ -167,11 +194,38 @@ graph LR
     BM --> CM
     CM --> PG
     PG --> DB
-    DA --> DB
-    FA --> DB
+
+    %% Persistence
+    DA -.->|"persist"| DB
+    FA -.->|"persist"| DB
+    ORC -.->|"persist"| DB
+
+    %% Dashboard reads
     DB --> MC
     MC --> AE
     AE --> BS
+
+    %% External integrations
+    DA -.->|"LLM"| LLM
+    FA -.->|"LLM"| LLM
+    RA -.->|"LLM"| LLM
+    SEC -.->|"LLM"| LLM
+    PER -.->|"LLM"| LLM
+    QAL -.->|"LLM"| LLM
+    COV -.->|"LLM"| LLM
+    PG -.->|"PR"| GHAPI
+
+    class LOGS,REPO input
+    class IDX,VS,RET rag
+    class LP,EC,DA analysis
+    class FA fix
+    class SV,BV,TR validation
+    class RA retry
+    class ORC,SEC,PER,QAL,COV review
+    class BM,CM,PG pr
+    class DB storage
+    class MC,AE,BS dashboard
+    class GHAPI,LLM external
 ```
 
 ---
@@ -179,47 +233,79 @@ graph LR
 ## End-to-End Workflow
 
 ```mermaid
+%%{init: {"sequence": {"actorMargin": 55, "boxMargin": 22, "messageMargin": 28}}}%%
 sequenceDiagram
     actor User
-    participant API as FastAPI
+    participant API as FastAPI Server
     participant RAG as RAG Engine
     participant Agents as AI Agents
-    participant Val as Validation
-    participant GH as GitHub
+    participant Val as Validation Pipeline
+    participant GH as GitHub API
     participant DB as Database
     participant Dash as Dashboard
 
-    User->>API: POST /analysis/debug (logs, repo)
-    API->>RAG: Retrieve relevant code context
-    RAG-->>API: Similar failure patterns & snippets
-    
-    API->>Agents: Analyze root cause (Debug Agent)
-    Agents-->>API: {error: "ImportError", root_cause: "missing dependency"}
-    
-    API->>Agents: Generate fix (Fix Agent)
-    Agents-->>API: {patch: "--- a/src/app.py\n+++ ...", files: [...]}
-    
-    API->>Val: Validate syntax, build, tests
-    Val-->>API: {syntax: pass, build: pass, tests: 42/42 pass}
-    
-    alt Tests Failed
-        API->>Agents: Retry with improved strategy
-        Agents-->>API: {fix: "revised patch", attempt: 2}
-        API->>Val: Re-validate
+    Note over User,API: STAGE 1 — Failure Ingestion
+    User->>API: POST /analysis/debug
+    activate API
+    API->>+RAG: Retrieve context
+    RAG-->>-API: Matching patterns & context
+    deactivate API
+
+    Note over API,Agents: STAGE 2 — Root Cause Analysis
+    activate API
+    API->>+Agents: Debug Agent: analyze failure
+    Agents-->>-API: {root cause, approach}
+    deactivate API
+
+    Note over API,Agents: STAGE 3 — Fix Generation
+    activate API
+    API->>+Agents: Fix Agent: generate patch
+    Agents-->>-API: {patch, files, assumptions}
+    deactivate API
+
+    Note over API,Val: STAGE 4 — Validation
+    activate API
+    API->>+Val: Validate (AST + build + tests)
+    Val-->>-API: {syntax, build, tests}
+    deactivate API
+
+    Note over API,Agents: STAGE 5 — Retry (conditional)
+    alt Validation Failed
+        activate API
+        API->>+Agents: Retry Agent: improve (attempt N)
+        Agents-->>-API: {revised patch, attempt}
+        API->>+Val: Re-validate improved fix
+        Val-->>-API: ValidationResult
+        deactivate API
     end
-    
-    API->>Agents: Multi-agent review
-    Agents-->>API: {security: 0.92, performance: 0.88, quality: 0.95, coverage: 0.80}
-    
-    alt Review Approved
-        API->>GH: Create branch, commit, PR
-        GH-->>API: {pr_url: "https://github.com/.../pull/42"}
+
+    Note over API,Agents: STAGE 6 — Multi-Agent Review
+    activate API
+    API->>+Agents: Review Orchestrator: evaluate quality
+    Agents-->>-API: {4 review scores}
+    deactivate API
+
+    Note over API,GH: STAGE 7 — PR Automation (conditional)
+    alt Review Approved & Real Mode
+        activate API
+        API->>+GH: Create branch → commit → PR
+        GH-->>-API: {pr_url, branch}
+        deactivate API
+    else Dry Run or Rejected
+        activate API
+        API->>API: Log result (dry run)
+        deactivate API
     end
-    
-    API->>DB: Persist results
-    API->>Dash: Update metrics
-    Dash-->>User: Real-time dashboard refresh
-    API-->>User: {status: "resolved", pr_url: "..."}
+
+    Note over API,Dash: STAGE 8 — Persistence
+    activate API
+    API->>+DB: Persist results
+    DB-->>-API: confirmed
+    API->>+Dash: Update metrics
+    Dash-->>-API: updated
+    Dash-->>User: Dashboard refresh
+    deactivate API
+    API-->>User: {status, pr_url, summary}
 ```
 
 ---

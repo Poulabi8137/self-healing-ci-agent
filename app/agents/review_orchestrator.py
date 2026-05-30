@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional, Tuple
+import asyncio
+from typing import Any, Dict, List, Tuple
 
 from app.utils.logger import get_logger
 from app.agents.security_reviewer import SecurityReviewer
@@ -42,7 +43,7 @@ def _determine_recommendation(
 class ReviewOrchestrator:
     """Orchestrates all code reviewers and aggregates results.
 
-    Runs security, performance, quality, and coverage reviews,
+    Runs security, performance, quality, and coverage reviews in parallel,
     then produces a combined report with final recommendation.
     """
 
@@ -53,7 +54,7 @@ class ReviewOrchestrator:
         modified_files: List[str],
         validation: str = "",
     ) -> Dict[str, Any]:
-        """Execute all four reviewers and aggregate their output.
+        """Execute all four reviewers in parallel and aggregate their output.
 
         Args:
             fix_summary: Summary of the generated fix.
@@ -66,18 +67,18 @@ class ReviewOrchestrator:
         """
         logger.info("Starting multi-agent review")
 
-        # Run all four reviewers
-        security = await SecurityReviewer().review(fix_summary, patch, modified_files, validation)
-        logger.info(f"Security review complete — score: {security['security_score']}")
+        security_reviewer = SecurityReviewer()
+        performance_reviewer = PerformanceReviewer()
+        quality_reviewer = QualityReviewer()
+        coverage_reviewer = CoverageReviewer()
 
-        performance = await PerformanceReviewer().review(fix_summary, patch, modified_files, validation)
-        logger.info(f"Performance review complete — score: {performance['performance_score']}")
-
-        quality = await QualityReviewer().review(fix_summary, patch, modified_files, validation)
-        logger.info(f"Quality review complete — score: {quality['quality_score']}")
-
-        coverage = await CoverageReviewer().review(fix_summary, patch, modified_files, validation)
-        logger.info(f"Coverage review complete — score: {coverage['coverage_score']}")
+        security, performance, quality, coverage = await asyncio.gather(
+            security_reviewer.review(fix_summary, patch, modified_files, validation),
+            performance_reviewer.review(fix_summary, patch, modified_files, validation),
+            quality_reviewer.review(fix_summary, patch, modified_files, validation),
+            coverage_reviewer.review(fix_summary, patch, modified_files, validation),
+        )
+        logger.info("All reviews complete — aggregating results")
 
         # Aggregate scores
         security_score = security["security_score"]
