@@ -1,0 +1,55 @@
+# Caddy v2 configuration for Self-Healing CI Agent
+#
+# Development:  uses `tls internal` (self-signed, no external dependency)
+# Production:   remove `tls internal`, set CADDY_DOMAIN env var for auto HTTPS
+#
+# https://caddyserver.com/docs/caddyfile
+
+{$CADDY_DOMAIN:localhost} {
+    # Production: remove this line to enable Let's Encrypt auto HTTPS
+    tls {$CADDY_EMAIL:off}
+
+    # Security headers
+    header {
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # Prevent clickjacking
+        X-Frame-Options "DENY"
+        # Enable XSS filter in older browsers
+        X-XSS-Protection "1; mode=block"
+        # Control referrer information
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Restrict browser features
+        Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+        # Remove Caddy server header
+        -Server
+        # HSTS (production only — requires valid TLS)
+        # Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    }
+
+    # Health check endpoint — no caching
+    handle /health* {
+        reverse_proxy backend:8000
+    }
+
+    # API proxy
+    handle /* {
+        reverse_proxy backend:8000 {
+            # Pass original host header to backend
+            header_up Host {host}
+            # Pass client IP
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Access logs (JSON format for log shippers)
+    log {
+        output file /data/logs/access.log {
+            roll_size 50mb
+            roll_keep 7
+        }
+        format json
+    }
+}

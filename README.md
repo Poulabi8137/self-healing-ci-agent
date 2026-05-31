@@ -7,11 +7,11 @@
   <p align="center">
     <a href="#"><img src="https://img.shields.io/badge/python-3.12-blue?style=flat&logo=python" alt="Python 3.12"></a>
     <a href="#"><img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi" alt="FastAPI"></a>
-    <a href="#"><img src="https://img.shields.io/badge/LangChain-1.0-00A86B?style=flat" alt="LangChain"></a>
-    <a href="#"><img src="https://img.shields.io/badge/tests-197_passing-brightgreen?style=flat" alt="Tests"></a>
+    <a href="#"><img src="https://img.shields.io/badge/tests-256_passing-brightgreen?style=flat" alt="Tests"></a>
     <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat&logo=githubactions" alt="CI"></a>
     <a href="#"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat" alt="MIT License"></a>
     <a href="#"><img src="https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker" alt="Docker"></a>
+    <a href="#"><img src="https://img.shields.io/badge/Production_Ready-82%2F100-00BFFF?style=flat" alt="Production Ready"></a>
   </p>
 </p>
 
@@ -59,7 +59,7 @@ CI/CD pipelines are the heartbeat of modern software delivery — yet they fail 
 |------|-------------|----------------|
 | **1. Ingest** | CI/CD logs and repository code are loaded into the system | RAG indexes code into vector embeddings |
 | **2. Analyze** | Logs are parsed, errors classified, root cause identified | Debug Agent analyzes with RAG context |
-| **3. Fix** | Targeted code fix is generated with structured patch output | Fix Agent generates using LangChain |
+| **3. Fix** | Targeted code fix is generated with structured patch output | Fix Agent generates using DeepSeek API |
 | **4. Validate** | Syntax, build, and test checks are run against the fix | Automated pipeline (no AI needed) |
 | **5. Retry** | If validation fails, the fix is improved and re-validated | Retry Agent adapts strategy |
 | **6. Review** | Fix is reviewed across 4 dimensions for quality assurance | 4 specialized AI reviewers |
@@ -73,7 +73,7 @@ CI/CD pipelines are the heartbeat of modern software delivery — yet they fail 
 |---|---------|-------------|
 | ✅ | **Repository-Aware RAG** | Indexes entire repositories into FAISS vector embeddings; retrieves relevant code context for every analysis |
 | ✅ | **Root Cause Analysis** | AI-driven log parsing with error classification (syntax, dependency, test, runtime, build) |
-| ✅ | **AI Fix Generation** | LangChain-powered fix generation with structured unified diff patches |
+| ✅ | **AI Fix Generation** | DeepSeek-powered fix generation with structured unified diff patches |
 | ✅ | **Validation Engine** | Multi-stage pipeline: Python AST syntax checks → project structure validation → pytest execution |
 | ✅ | **Autonomous Retry Loop** | Adaptive self-healing with escalating fix strategies (configurable: 3 attempts by default) |
 | ✅ | **Multi-Agent Review System** | 4 specialized reviewers (Security, Performance, Quality, Coverage) with aggregated scoring |
@@ -85,228 +85,17 @@ CI/CD pipelines are the heartbeat of modern software delivery — yet they fail 
 
 ## System Architecture
 
-```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 70, "rankSpacing": 120, "htmlLabels": true}}}%%
-graph TB
-    classDef input fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef rag fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef analysis fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef fix fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef validation fill:#fce4ec,stroke:#c62828,stroke-width:2px
-    classDef retry fill:#fbe9e7,stroke:#bf360c,stroke-width:2px
-    classDef review fill:#e0f7fa,stroke:#00695c,stroke-width:2px
-    classDef pr fill:#fff8e1,stroke:#f57f17,stroke-width:2px
-    classDef storage fill:#f5f5f5,stroke:#424242,stroke-width:2px,stroke-dasharray:5 5
-    classDef dashboard fill:#e8eaf6,stroke:#283593,stroke-width:2px
-    classDef external fill:#efebe9,stroke:#4e342e,stroke-width:2px
+<img src="assets/architecture-readme.svg" alt="System Architecture" width="100%"/>
 
-    subgraph "📥 1. Input — CI/CD Events"
-        LOGS["📄 CI/CD Logs"]
-        REPO["📁 Repository"]
-    end
-
-    subgraph "🧠 2. RAG — Context Retrieval"
-        IDX["Indexing Pipeline"]
-        VS["(Vector Store — FAISS)"]
-        RET["Semantic Retriever"]
-    end
-
-    subgraph "🔬 3. Root Cause Analysis"
-        LP["Log Parser"]
-        EC["Error Classifier"]
-        DA["🤖 Debug Agent"]
-    end
-
-    subgraph "🛠️ 4. Fix Generation"
-        FA["🤖 Fix Agent"]
-    end
-
-    subgraph "✅ 5. Validation"
-        SV["Syntax Validator (AST)"]
-        BV["Build Validator"]
-        TR["Test Runner (pytest)"]
-    end
-
-    subgraph "🔄 6. Retry Loop"
-        RA["🤖 Retry Agent"]
-    end
-
-    subgraph "📋 7. Multi-Agent Review"
-        ORC["Review Orchestrator"]
-        SEC["🔒 Security Reviewer"]
-        PER["⚡ Performance Reviewer"]
-        QAL["📐 Quality Reviewer"]
-        COV["🧪 Coverage Reviewer"]
-    end
-
-    subgraph "🚀 8. PR Automation"
-        BM["Branch Manager"]
-        CM["Commit Manager"]
-        PG["PR Generator"]
-    end
-
-    subgraph "💾 9. Persistence"
-        DB["(SQLite Database)"]
-    end
-
-    subgraph "📊 10. Dashboard & Benchmarks"
-        MC["Metrics Collector"]
-        AE["Analytics Engine"]
-        BS["Benchmark Service"]
-    end
-
-    subgraph "🌐 11. External Integrations"
-        GHAPI["GitHub API"]
-        LLM["DeepSeek LLM"]
-    end
-
-    %% RAG Pipeline
-    REPO --> IDX
-    IDX --> VS
-    LOGS --> LP
-    LP --> EC
-    EC --> DA
-    DA -.->|"query ctx"| RET
-    RET -.-> VS
-
-    %% Main pipeline
-    DA --> FA
-    FA --> SV
-    SV --> BV
-    BV --> TR
-
-    %% Retry loop
-    TR -->|"✗ fail"| RA
-    RA -->|"retry fix"| FA
-
-    %% Review
-    TR -->|"✓ pass"| ORC
-    ORC --> SEC
-    ORC --> PER
-    ORC --> QAL
-    ORC --> COV
-
-    %% PR pipeline
-    SEC --> BM
-    PER --> BM
-    QAL --> CM
-    COV --> PG
-    BM --> CM
-    CM --> PG
-    PG --> DB
-
-    %% Persistence
-    DA -.->|"persist"| DB
-    FA -.->|"persist"| DB
-    ORC -.->|"persist"| DB
-
-    %% Dashboard reads
-    DB --> MC
-    MC --> AE
-    AE --> BS
-
-    %% External integrations
-    DA -.->|"LLM"| LLM
-    FA -.->|"LLM"| LLM
-    RA -.->|"LLM"| LLM
-    SEC -.->|"LLM"| LLM
-    PER -.->|"LLM"| LLM
-    QAL -.->|"LLM"| LLM
-    COV -.->|"LLM"| LLM
-    PG -.->|"PR"| GHAPI
-
-    class LOGS,REPO input
-    class IDX,VS,RET rag
-    class LP,EC,DA analysis
-    class FA fix
-    class SV,BV,TR validation
-    class RA retry
-    class ORC,SEC,PER,QAL,COV review
-    class BM,CM,PG pr
-    class DB storage
-    class MC,AE,BS dashboard
-    class GHAPI,LLM external
-```
+*Detailed architecture diagram with all 25 components available in [docs/architecture.md](docs/architecture.md).*
 
 ---
 
 ## End-to-End Workflow
 
-```mermaid
-%%{init: {"sequence": {"actorMargin": 55, "boxMargin": 22, "messageMargin": 28}}}%%
-sequenceDiagram
-    actor User
-    participant API as FastAPI Server
-    participant RAG as RAG Engine
-    participant Agents as AI Agents
-    participant Val as Validation Pipeline
-    participant GH as GitHub API
-    participant DB as Database
-    participant Dash as Dashboard
+<img src="assets/workflow-readme.svg" alt="End-to-End Workflow" width="100%"/>
 
-    Note over User,API: STAGE 1 — Failure Ingestion
-    User->>API: POST /analysis/debug
-    activate API
-    API->>+RAG: Retrieve context
-    RAG-->>-API: Matching patterns & context
-    deactivate API
-
-    Note over API,Agents: STAGE 2 — Root Cause Analysis
-    activate API
-    API->>+Agents: Debug Agent: analyze failure
-    Agents-->>-API: {root cause, approach}
-    deactivate API
-
-    Note over API,Agents: STAGE 3 — Fix Generation
-    activate API
-    API->>+Agents: Fix Agent: generate patch
-    Agents-->>-API: {patch, files, assumptions}
-    deactivate API
-
-    Note over API,Val: STAGE 4 — Validation
-    activate API
-    API->>+Val: Validate (AST + build + tests)
-    Val-->>-API: {syntax, build, tests}
-    deactivate API
-
-    Note over API,Agents: STAGE 5 — Retry (conditional)
-    alt Validation Failed
-        activate API
-        API->>+Agents: Retry Agent: improve (attempt N)
-        Agents-->>-API: {revised patch, attempt}
-        API->>+Val: Re-validate improved fix
-        Val-->>-API: ValidationResult
-        deactivate API
-    end
-
-    Note over API,Agents: STAGE 6 — Multi-Agent Review
-    activate API
-    API->>+Agents: Review Orchestrator: evaluate quality
-    Agents-->>-API: {4 review scores}
-    deactivate API
-
-    Note over API,GH: STAGE 7 — PR Automation (conditional)
-    alt Review Approved & Real Mode
-        activate API
-        API->>+GH: Create branch → commit → PR
-        GH-->>-API: {pr_url, branch}
-        deactivate API
-    else Dry Run or Rejected
-        activate API
-        API->>API: Log result (dry run)
-        deactivate API
-    end
-
-    Note over API,Dash: STAGE 8 — Persistence
-    activate API
-    API->>+DB: Persist results
-    DB-->>-API: confirmed
-    API->>+Dash: Update metrics
-    Dash-->>-API: updated
-    Dash-->>User: Dashboard refresh
-    deactivate API
-    API-->>User: {status, pr_url, summary}
-```
+*Full sequence diagram with activations, retry loops, and multi-agent review available in [docs/architecture.md](docs/architecture.md).*
 
 ---
 
@@ -314,15 +103,16 @@ sequenceDiagram
 
 | Layer | Technologies | Purpose |
 |-------|-------------|---------|
-| **Backend** | Python 3.12, FastAPI 0.115, Uvicorn | Async HTTP server with automatic OpenAPI docs |
-| **AI Framework** | LangChain 1.0, DeepSeek API | LLM abstraction, prompt chaining, structured output parsing |
-| **Retrieval** | FAISS, Sentence Transformers (all-MiniLM-L6-v2) | Vector similarity search for RAG context retrieval |
+| **Backend** | Python 3.12, FastAPI 0.115, Uvicorn, gunicorn | Async HTTP server with automatic OpenAPI docs and multi-worker support |
+| **AI Engine** | DeepSeek API, Sentence Transformers (all-MiniLM-L6-v2) | LLM-powered analysis, fix generation, and code review |
+| **Retrieval** | FAISS, Sentence Transformers | Vector similarity search for RAG context retrieval |
 | **Database** | SQLite, SQLAlchemy 2.0, Pydantic | Data persistence with ORM and type-safe settings |
 | **Frontend** | Streamlit 1.41 | Interactive dashboard for triggering workflows and viewing metrics |
 | **Validation** | AST (stdlib), pytest, custom checks | Multi-stage CI/CD validation pipeline |
 | **GitHub** | PyGithub, GitPython | Branch management, commit creation, PR generation |
-| **Logging** | Loguru | Structured, rotating, colorized logging |
-| **Infrastructure** | Docker, Docker Compose, GitHub Actions | Containerization and CI/CD for the project itself |
+| **Logging** | Loguru | Structured, rotating, JSON and text logging |
+| **Resilience** | Circuit breaker, exponential backoff, rate limiter | Fault tolerance for external API calls and request throttling |
+| **Infrastructure** | Docker, Docker Compose, Caddy, GitHub Actions | Containerization, reverse proxy with HTTPS, and CI/CD |
 
 ---
 
@@ -330,7 +120,7 @@ sequenceDiagram
 
 ```
 self-healing-ci-agent/
-├── app/                              # Backend (49 Python modules)
+├── app/                              # Backend (86 Python modules)
 │   ├── main.py                       # FastAPI entry point
 │   ├── agents/                       # 8 AI agents
 │   ├── api/                          # 9 API route modules
@@ -345,18 +135,23 @@ self-healing-ci-agent/
 │   ├── validation/                   # Validation engine
 │   └── workflows/                    # 6 workflow orchestrators
 ├── frontend/                         # Streamlit UI
-├── tests/                            # 197+ tests
+├── tests/                            # 256 tests
 ├── docs/                             # Documentation
 │   ├── architecture.md
 │   ├── workflows.md
 │   ├── api_reference.md
 │   └── project_report.md
 ├── examples/                         # Demo data
-├── assets/                           # Screenshots
+├── assets/                           # Diagrams and screenshots
 ├── docker/
+│   ├── Caddyfile                     # Caddy reverse proxy config
 │   └── docker-compose.yml
 ├── Dockerfile
 ├── .env.example
+├── LICENSE
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── RELEASE_NOTES.md
 └── requirements.txt
 ```
 
@@ -502,10 +297,19 @@ All configuration is managed through environment variables in a `.env` file (cop
 | `MODEL_NAME` | `deepseek-chat` | No | LLM model identifier |
 | `EMBEDDING_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | No | Embedding model for RAG |
 | `MAX_RETRIES` | `3` | No | Max retry attempts per failure |
-| `RETRY_DELAY` | `1.0` | No | Delay between retries (seconds) |
-| `CHUNK_SIZE` | `512` | No | RAG code chunk size (characters) |
-| `CHUNK_OVERLAP` | `50` | No | Overlap between consecutive chunks |
+| `RETRY_DELAY` | `1.0` | No | Base delay between retries (seconds) |
+| `RETRY_BACKOFF_FACTOR` | `2.0` | No | Exponential backoff multiplier |
+| `RETRY_JITTER` | `0.1` | No | Random jitter fraction (±) added to delays |
+| `CHUNK_SIZE` | `1000` | No | RAG code chunk size (characters) |
+| `CHUNK_OVERLAP` | `200` | No | Overlap between consecutive chunks |
 | `DATABASE_URL` | `sqlite:///./data/self_healing.db` | No | Database connection string |
+| `AUTH_ENABLED` | `true` | No | Enable API key authentication |
+| `BOOTSTRAP_ADMIN_KEY` | — | No | Pre-shared admin key for first-time setup |
+| `RATE_LIMITING_ENABLED` | `true` | No | Enable rate limiting middleware |
+| `WORKERS` | `1` | No | Number of gunicorn worker processes |
+| `CORS_ORIGINS` | `*` | No | Comma-separated allowed origins |
+| `CIRCUIT_BREAKER_FAILURE_THRESHOLD` | `5` | No | Consecutive failures before circuit opens |
+| `LOG_JSON` | `false` | No | Enable structured JSON logging output |
 | `DEBUG` | `false` | No | Enable debug mode (hot reload, verbose logs) |
 | `LOG_LEVEL` | `INFO` | No | Logging verbosity (DEBUG, INFO, WARNING, ERROR) |
 
@@ -561,10 +365,11 @@ test_api.py:85: AssertionError - Expected 200, got 500
 
 | Metric | Value |
 |--------|-------|
-| **Total tests** | 197+ |
+| **Total tests** | 256 |
 | **Pass rate** | 100% |
 | **Test framework** | pytest + pytest-asyncio |
-| **Coverage areas** | All 6 workflows, 8 agents, 9 API routers, 5 dashboard modules, all validators, all prompts, all GitHub integrations |
+| **Test files** | 46 |
+| **Coverage areas** | All 6 workflows, 8 agents, 9 API routers, 5 dashboard modules, all validators, all prompts, all GitHub integrations, auth RBAC, rate limiting, circuit breaker, retry utilities, JSON logging |
 | **CI pipeline** | GitHub Actions — runs on every push |
 
 ```bash
@@ -612,6 +417,12 @@ The system includes a live benchmark dashboard accessible from the Streamlit UI:
 | [Workflows](docs/workflows.md) | 6 workflow descriptions with Mermaid flowcharts, inputs/outputs |
 | [API Reference](docs/api_reference.md) | Complete API docs with request/response JSON examples |
 | [Project Report](docs/project_report.md) | Full project analysis: architecture, benchmarks, limitations, future work |
+| [Performance Audit](docs/AUDIT.md) | Bottleneck analysis, optimizations, before/after metrics |
+| [Production Readiness](docs/PRODUCTION_READINESS.md) | Security, reliability, deployment assessment |
+| [Blocker Resolution](docs/BLOCKER_RESOLUTION.md) | Auth, task queue, and migration fixes |
+| [Changelog](CHANGELOG.md) | Version history and release notes |
+| [Contributing](CONTRIBUTING.md) | Setup instructions, coding standards, PR process |
+| [Release Notes](RELEASE_NOTES.md) | v0.1.0 feature overview and deployment guide |
 
 ---
 
@@ -641,6 +452,13 @@ The [`examples/`](examples/) directory contains sample data for demonstrations:
 
 ## Future Improvements
 
+- [x] Rate limiting and request body size enforcement
+- [x] Circuit breaker for external API resilience
+- [x] Exponential backoff with jitter for retries
+- [x] Structured JSON logging with rotation
+- [x] Caddy reverse proxy with HTTPS-ready configuration
+- [x] gunicorn multi-worker deployment support
+- [x] Startup validation of required secrets
 - [ ] Multi-language validation (JavaScript, Go, Rust, Java)
 - [ ] Webhook-based CI integration (GitHub Actions, GitLab CI, Jenkins)
 - [ ] Slack/Teams notification integration
@@ -662,7 +480,7 @@ This project was designed as a portfolio-grade demonstration of:
 | Skill | Demonstrated By |
 |-------|----------------|
 | **Full-stack AI engineering** | RAG pipeline → AI agents → validation → frontend dashboard |
-| **Production-quality Python** | Type annotations, error handling, structured logging, 197+ tests |
+| **Production-quality Python** | Type annotations, error handling, structured logging, 256 tests |
 | **Multi-agent orchestration** | 8 specialized AI agents coordinated by workflows |
 | **System design** | Modular layered architecture with clear separation of concerns |
 | **DevOps & infrastructure** | Docker, GitHub Actions, environment configuration |
@@ -672,7 +490,7 @@ This project was designed as a portfolio-grade demonstration of:
 
 ## License
 
-MIT — a `LICENSE` file will be added before public release.
+MIT — see the [LICENSE](LICENSE) file for details.
 
 ---
 

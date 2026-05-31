@@ -5,10 +5,42 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - ../.env
+    environment:
+      - WORKERS=${WORKERS:-4}
     volumes:
       - ../data:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - ../data:/data
+    env_file:
+      - ../.env
+    environment:
+      - CADDY_DOMAIN=${CADDY_DOMAIN:-localhost}
+      - CADDY_EMAIL=${CADDY_EMAIL:-off}
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

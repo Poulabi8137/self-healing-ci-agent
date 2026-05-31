@@ -57,7 +57,7 @@ The system follows a modular, layered architecture:
 
 ```
 self-healing-ci-agent/
-├── app/                     # Backend (49 Python modules)
+├── app/                     # Backend (86 Python modules)
 │   ├── agents/              # 8 AI agents
 │   ├── api/                 # 9 route modules
 │   ├── config/              # Settings

@@ -46,10 +46,50 @@ class Settings(BaseSettings):
     vector_store_dir: str = str(BASE_DIR / "data" / "vector_store")
     repo_cache_dir: str = str(BASE_DIR / "data" / "repositories")
 
+    # Auth
+    auth_enabled: bool = True
+    bootstrap_admin_key: str = ""
+
+    # Logging
+    log_json: bool = False
+
+    # Rate Limiting
+    rate_limiting_enabled: bool = True
+    rate_limit_default: int = 30
+    rate_limit_window: int = 60
+
+    # Deployment
+    workers: int = 1
+    cors_origins: str = "*"
+
+    # Circuit Breaker
+    circuit_breaker_failure_threshold: int = 5
+    circuit_breaker_recovery_timeout: int = 30
+    circuit_breaker_half_open_max_requests: int = 3
+
+    # Retry Hardening
+    retry_backoff_factor: float = 2.0
+    retry_jitter: float = 0.1
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
         extra = "ignore"
+
+    def validate_secrets(self) -> list[str]:
+        """Validate required secrets at startup. Returns list of warning messages."""
+        warnings = []
+        if not self.deepseek_api_key:
+            warnings.append(
+                "DEEPSEEK_API_KEY is not set. LLM calls will fail. "
+                "Set it in .env or export the environment variable."
+            )
+        if not self.github_token:
+            warnings.append(
+                "GITHUB_TOKEN is not set. GitHub API calls will fail. "
+                "Set it in .env or export the environment variable."
+            )
+        return warnings
 
 
 settings = Settings()

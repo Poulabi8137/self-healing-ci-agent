@@ -4,6 +4,8 @@
 
 The Self-Healing AI CI/CD Agent is built on a modular, microservices-inspired architecture using FastAPI as the core backend framework. The system is organized into distinct layers that handle specific responsibilities, from data ingestion to workflow orchestration to presentation.
 
+<img src="../assets/architecture-detailed.svg" alt="Detailed System Architecture" width="100%"/>
+
 ## Layers
 
 ### 1. API Layer (`app/api/`)
@@ -157,6 +159,86 @@ graph TB
     DASH -- reads --> DB
     DASH -- serves --> API
 ```
+
+## End-to-End Workflow Sequence
+
+```mermaid
+%%{init: {"sequence": {"actorMargin": 55, "boxMargin": 22, "messageMargin": 28}}}%%
+sequenceDiagram
+    actor User
+    participant API as FastAPI Server
+    participant RAG as RAG Engine
+    participant Agents as AI Agents
+    participant Val as Validation Pipeline
+    participant GH as GitHub API
+    participant DB as Database
+    participant Dash as Dashboard
+
+    Note over User,API: STAGE 1 — Failure Ingestion
+    User->>API: POST /analysis/debug
+    activate API
+    API->>+RAG: Retrieve context
+    RAG-->>-API: Matching patterns & context
+    deactivate API
+
+    Note over API,Agents: STAGE 2 — Root Cause Analysis
+    activate API
+    API->>+Agents: Debug Agent: analyze failure
+    Agents-->>-API: {root cause, approach}
+    deactivate API
+
+    Note over API,Agents: STAGE 3 — Fix Generation
+    activate API
+    API->>+Agents: Fix Agent: generate patch
+    Agents-->>-API: {patch, files, assumptions}
+    deactivate API
+
+    Note over API,Val: STAGE 4 — Validation
+    activate API
+    API->>+Val: Validate (AST + build + tests)
+    Val-->>-API: {syntax, build, tests}
+    deactivate API
+
+    Note over API,Agents: STAGE 5 — Retry (conditional)
+    alt Validation Failed
+        activate API
+        API->>+Agents: Retry Agent: improve (attempt N)
+        Agents-->>-API: {revised patch, attempt}
+        API->>+Val: Re-validate improved fix
+        Val-->>-API: ValidationResult
+        deactivate API
+    end
+
+    Note over API,Agents: STAGE 6 — Multi-Agent Review
+    activate API
+    API->>+Agents: Review Orchestrator: evaluate quality
+    Agents-->>-API: {4 review scores}
+    deactivate API
+
+    Note over API,GH: STAGE 7 — PR Automation (conditional)
+    alt Review Approved & Real Mode
+        activate API
+        API->>+GH: Create branch → commit → PR
+        GH-->>-API: {pr_url, branch}
+        deactivate API
+    else Dry Run or Rejected
+        activate API
+        API->>API: Log result (dry run)
+        deactivate API
+    end
+
+    Note over API,Dash: STAGE 8 — Persistence
+    activate API
+    API->>+DB: Persist results
+    DB-->>-API: confirmed
+    API->>+Dash: Update metrics
+    Dash-->>-API: updated
+    Dash-->>User: Dashboard refresh
+    deactivate API
+    API-->>User: {status, pr_url, summary}
+```
+
+---
 
 ## Technology Stack
 

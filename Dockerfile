@@ -32,7 +32,10 @@ RUN mkdir -p /app/data/logs /app/data/repositories /app/data/vector_store
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use gunicorn with uvicorn workers for production multi-worker support.
+# Worker count is configured via WORKERS env var (default: 1).
+# For single-worker mode (e.g., debug), set WORKERS=1.
+CMD ["gunicorn", "app.main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "120", "--graceful-timeout", "30", "--keep-alive", "5", "--max-requests", "10000", "--max-requests-jitter", "1000"]

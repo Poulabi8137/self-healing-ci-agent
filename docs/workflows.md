@@ -251,5 +251,5 @@ Workflow behavior is controlled via environment variables:
 | `MAX_RETRIES` | 3 | Maximum retry attempts |
 | `RETRY_DELAY` | 1.0 | Delay between retries (seconds) |
 | `MAX_RETRY_ATTEMPTS` | 3 | Max self-healing iterations |
-| `CHUNK_SIZE` | 512 | RAG chunk size |
-| `CHUNK_OVERLAP` | 50 | RAG chunk overlap |
+| `CHUNK_SIZE` | 1000 | RAG chunk size (characters) |
+| `CHUNK_OVERLAP` | 200 | Overlap between consecutive chunks |
