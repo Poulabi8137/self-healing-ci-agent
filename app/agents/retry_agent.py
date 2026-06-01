@@ -1,9 +1,8 @@
 import datetime
 from typing import Any, Dict, List, Optional
 
-from app.config.settings import settings
 from app.utils.logger import get_logger
-from app.utils.deepseek_client import DeepSeekClient
+from app.llm.factory import LLMFactory
 from app.prompts.retry_prompt import build_retry_prompt, parse_retry_output
 from app.rag.embedding import get_embedding_service
 from app.rag.retriever import RetrieverService
@@ -24,7 +23,7 @@ class RetryAgent:
     """
 
     def __init__(self):
-        self._deepseek: Optional[DeepSeekClient] = None
+        self._provider = None
 
     async def improve_fix(
         self,
@@ -104,19 +103,18 @@ class RetryAgent:
         return improved_fix
 
     async def _call_llm(self, system_prompt: str, user_prompt: str) -> Optional[str]:
-        if not settings.deepseek_api_key:
-            logger.warning("No DeepSeek API key configured — returning retry fallback")
-            return _fallback_retry(user_prompt)
-
         try:
-            if self._deepseek is None:
-                self._deepseek = DeepSeekClient()
-            return await self._deepseek.generate_response(
+            if self._provider is None:
+                self._provider = LLMFactory.get_provider()
+            response = await self._provider.generate_response(
                 prompt=user_prompt,
                 system_prompt=system_prompt,
                 temperature=0.3,
                 max_tokens=3072,
             )
+            if not response or not response.content:
+                return _fallback_retry(user_prompt)
+            return response.content
         except Exception as e:
             logger.error(f"LLM call failed during retry: {e}")
             return _fallback_retry(user_prompt)

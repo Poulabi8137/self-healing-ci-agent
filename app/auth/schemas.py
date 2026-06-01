@@ -29,5 +29,12 @@ class ListApiKeysResponse(BaseModel):
     api_keys: list[ApiKeyInfo]
 
 
+class MeResponse(BaseModel):
+    key_prefix: str
+    name: str
+    role: str
+    created_at: str
+
+
 class RevokeApiKeyResponse(BaseModel):
     message: str

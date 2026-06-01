@@ -1,8 +1,7 @@
 from typing import Any, Dict, List, Optional
 
-from app.config.settings import settings
 from app.utils.logger import get_logger
-from app.utils.deepseek_client import DeepSeekClient
+from app.llm.factory import LLMFactory
 from app.prompts.review_prompt import build_review_prompt, parse_review_output
 
 logger = get_logger(__name__)
@@ -16,7 +15,7 @@ class PerformanceReviewer:
     """
 
     def __init__(self):
-        self._deepseek: Optional[DeepSeekClient] = None
+        self._provider = None
 
     async def review(
         self,
@@ -54,19 +53,18 @@ class PerformanceReviewer:
         }
 
     async def _call_llm(self, system_prompt: str, user_prompt: str) -> Optional[str]:
-        if not settings.deepseek_api_key:
-            logger.warning("No DeepSeek API key — returning performance review fallback")
-            return _fallback_performance_review()
-
         try:
-            if self._deepseek is None:
-                self._deepseek = DeepSeekClient()
-            return await self._deepseek.generate_response(
+            if self._provider is None:
+                self._provider = LLMFactory.get_provider()
+            response = await self._provider.generate_response(
                 prompt=user_prompt,
                 system_prompt=system_prompt,
                 temperature=0.2,
                 max_tokens=2048,
             )
+            if not response or not response.content:
+                return _fallback_performance_review()
+            return response.content
         except Exception as e:
             logger.error(f"LLM call failed during performance review: {e}")
             return _fallback_performance_review()

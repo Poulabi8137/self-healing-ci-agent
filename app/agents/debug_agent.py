@@ -1,8 +1,7 @@
 from typing import Any, Dict, List, Optional
 
-from app.config.settings import settings
 from app.utils.logger import get_logger
-from app.utils.deepseek_client import DeepSeekClient
+from app.llm.factory import LLMFactory
 from app.prompts.debug_prompt import build_debug_prompt, parse_analysis_output
 from app.rag.embedding import get_embedding_service
 from app.rag.retriever import RetrieverService
@@ -13,12 +12,12 @@ logger = get_logger(__name__)
 class DebugAgent:
     """Root cause analysis agent that combines log parsing with retrieval-grounded reasoning.
 
-    Uses the DeepSeek LLM (or a rule-based fallback) together with
+    Uses the configured LLM provider (or a rule-based fallback) together with
     semantically retrieved repository context to produce structured debugging analysis.
     """
 
     def __init__(self):
-        self._deepseek: Optional[DeepSeekClient] = None
+        self._provider = None
         self._retriever: Optional[RetrieverService] = None
 
     async def analyze(
@@ -92,20 +91,19 @@ class DebugAgent:
         }
 
     async def _call_llm(self, system_prompt: str, user_prompt: str) -> Optional[str]:
-        """Call the DeepSeek LLM. Falls back gracefully if no API key is configured."""
-        if not settings.deepseek_api_key:
-            logger.warning("No DeepSeek API key configured — returning rule-based fallback")
-            return _fallback_analysis(system_prompt, user_prompt)
-
+        """Call the configured LLM provider. Falls back gracefully if unavailable."""
         try:
-            if self._deepseek is None:
-                self._deepseek = DeepSeekClient()
-            return await self._deepseek.generate_response(
+            if self._provider is None:
+                self._provider = LLMFactory.get_provider()
+            response = await self._provider.generate_response(
                 prompt=user_prompt,
                 system_prompt=system_prompt,
                 temperature=0.3,
                 max_tokens=2048,
             )
+            if not response or not response.content:
+                return _fallback_analysis(system_prompt, user_prompt)
+            return response.content
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             return _fallback_analysis(system_prompt, user_prompt)

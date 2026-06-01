@@ -1,13 +1,24 @@
 from fastapi import APIRouter, HTTPException, Depends
 
-from app.auth.schemas import CreateApiKeyRequest, CreateApiKeyResponse, ApiKeyInfo, ListApiKeysResponse, RevokeApiKeyResponse
+from app.auth.schemas import CreateApiKeyRequest, CreateApiKeyResponse, ApiKeyInfo, ListApiKeysResponse, RevokeApiKeyResponse, MeResponse
 from app.auth.utils import create_api_key, list_api_keys, revoke_api_key
-from app.auth.dependencies import require_admin
+from app.auth.dependencies import require_admin, get_current_user
+from app.auth.models import ApiKey
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 router = APIRouter()
+
+
+@router.get("/me", response_model=MeResponse)
+async def api_auth_me(user: ApiKey = Depends(get_current_user)):
+    return MeResponse(
+        key_prefix=user.key_prefix,
+        name=user.name,
+        role=user.role,
+        created_at=user.created_at.isoformat() if user.created_at else "",
+    )
 
 
 @router.post("/keys", response_model=CreateApiKeyResponse)

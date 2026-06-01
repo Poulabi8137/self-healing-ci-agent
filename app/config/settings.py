@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     github_token: Optional[str] = None
     deepseek_api_key: Optional[str] = None
     deepseek_api_base: str = "https://api.deepseek.com/v1"
+    groq_api_key: Optional[str] = None
+
+    # Provider Selection
+    llm_provider: str = "deepseek"
+    llm_model: str = "deepseek-chat"
+    groq_model: str = "deepseek-r1-distill-llama-70b"
 
     # Models
     model_name: str = "deepseek-chat"
@@ -79,9 +85,14 @@ class Settings(BaseSettings):
     def validate_secrets(self) -> list[str]:
         """Validate required secrets at startup. Returns list of warning messages."""
         warnings = []
-        if not self.deepseek_api_key:
+        if self.llm_provider == "deepseek" and not self.deepseek_api_key:
             warnings.append(
                 "DEEPSEEK_API_KEY is not set. LLM calls will fail. "
+                "Set it in .env or export the environment variable."
+            )
+        if self.llm_provider == "groq" and not self.groq_api_key:
+            warnings.append(
+                "GROQ_API_KEY is not set. LLM calls will fail. "
                 "Set it in .env or export the environment variable."
             )
         if not self.github_token:
