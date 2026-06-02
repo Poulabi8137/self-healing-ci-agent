@@ -9,7 +9,7 @@
 
 ## Reporting a Vulnerability
 
-Please report security issues by opening a GitHub Issue with the label `security`.
+Please report security issues privately by emailing security@self-healing-ci-agent.dev or using the GitHub Security Advisory tab.
 
 Do not disclose the vulnerability publicly until it has been addressed. We aim to respond within 48 hours and patch critical issues within 7 days.
 

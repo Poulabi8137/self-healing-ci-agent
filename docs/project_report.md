@@ -1,5 +1,7 @@
 # Project Report: Self-Healing AI CI/CD Failure Resolution System
 
+> **⚠️ DEPRECATION NOTICE:** This report describes an earlier version of the project that used Streamlit as the frontend and LangChain for AI orchestration. The current v1.0.0 codebase uses React 19 + TypeScript + Vite for the frontend and a custom DeepSeek client directly. See [architecture.md](architecture.md) and the main [README.md](../README.md) for current documentation.
+
 ## 1. Executive Summary
 
 The Self-Healing AI CI/CD Agent is an intelligent system that automatically detects, diagnoses, and resolves CI/CD pipeline failures. By combining Retrieval-Augmented Generation (RAG), multi-agent AI orchestration, and comprehensive validation pipelines, the system reduces mean-time-to-resolution (MTTR) for CI/CD failures from hours to minutes.

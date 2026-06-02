@@ -53,7 +53,7 @@ export default function PR() {
                 onClick={() => {
                   setRepo(demoExampleRepo)
                   setLogs(demoExampleLogs)
-                  setResult({ status: 'completed', message: 'Pull request #124 created successfully. The fix extends token refresh interval and adds environment variable fallback for test environments.', pr_url: demoPRUrl, pr_number: demoPRNumber })
+                  setResult({ status: 'completed', message: `Pull request #${demoPRNumber} created successfully. The fix adds environment variable fallback for test environments and patches the ApiService error handling.`, pr_url: demoPRUrl, pr_number: demoPRNumber })
                 }}
                 className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent transition-colors"
               >

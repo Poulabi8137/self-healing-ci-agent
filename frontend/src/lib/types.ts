@@ -85,6 +85,15 @@ export interface TaskStatusResponse {
   updated_at: string
 }
 
+export interface ActivityItem {
+  id: number
+  type: 'workflow_run' | 'failure_detected' | 'fix_generated' | 'pr_created' | 'validation_passed' | 'validation_failed' | 'retry_attempted' | 'auto_resolved' | 'human_resolved'
+  repo: string
+  message: string
+  timestamp: string
+  status: 'success' | 'failure' | 'pending' | 'info'
+}
+
 export interface IndexStatusResponse {
   status: string
   indexed_files: number

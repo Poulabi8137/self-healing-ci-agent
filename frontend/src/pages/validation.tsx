@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, Bug, Package, Beaker, BookOpen } from 'lucide-react'
+import { Shield, Bug, Package, Beaker } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTransition } from '@/components/page-transition'
 import { StaggerGrid, StaggerItem } from '@/components/stagger-grid'
@@ -8,8 +8,10 @@ import { StatusBadge } from '@/components/status-badge'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { useTriggerValidation } from '@/lib/api'
-import { demoExampleRepo, demoExampleLogs, demoValidationResult } from '@/lib/demo-data'
+import { demoWorkflowLogsByType } from '@/lib/demo-data'
 import type { ValidationCheckResult } from '@/lib/types'
+
+const FAILURE_TYPES = Object.keys(demoWorkflowLogsByType)
 
 export default function Validation() {
   const [repo, setRepo] = useState('')
@@ -49,17 +51,22 @@ export default function Validation() {
         <SpotlightCard className="p-6">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium text-muted-foreground">Patch Validation</h2>
-            <button
-              onClick={() => {
-                setRepo(demoExampleRepo)
-                setLogs(demoExampleLogs)
-                setResult(demoValidationResult)
+            <select
+              value=""
+              onChange={(e) => {
+                const key = e.target.value
+                if (!key || !demoWorkflowLogsByType[key]) return
+                setRepo(demoWorkflowLogsByType[key].repo)
+                setLogs(demoWorkflowLogsByType[key].logs)
+                setResult(demoWorkflowLogsByType[key].validation)
               }}
-              className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent transition-colors"
+              className="rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer max-w-[140px]"
             >
-              <BookOpen className="h-3 w-3" />
-              Load Example
-            </button>
+              <option value="">Load Example</option>
+              {FAILURE_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-4" role="form" aria-label="Validation input form">
             <div>

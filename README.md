@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="assets/screenshots/dashboard-hero.png" alt="Self-Healing CI/CD Agent Dashboard" width="800"/>
-</p>
-
-<p align="center">
   <h1 align="center">Self-Healing CI/CD Agent</h1>
   <p align="center">
     An AI-powered system that autonomously detects, diagnoses, and resolves CI/CD pipeline failures —<br/>
@@ -17,10 +13,10 @@
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript" alt="TypeScript 6"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
   <br/>
-  <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/YOUR_USERNAME/self-healing-ci-agent/ci.yml?branch=main&style=flat-square&logo=githubactions" alt="CI"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-311_passing-brightgreen?style=flat-square" alt="Tests"></a>
+  <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/[your-username]/self-healing-ci-agent/ci.yml?branch=main&style=flat-square&logo=githubactions" alt="CI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-318_passing-brightgreen?style=flat-square" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker" alt="Docker"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Production_Ready-96%2F100-success?style=flat-square" alt="Production Ready"></a>
+  <a href="docs/PRODUCTION_READINESS.md"><img src="https://img.shields.io/badge/readiness-68%2F100-yellow?style=flat-square" alt="Production Readiness"></a>
 </p>
 
 ---
@@ -127,7 +123,7 @@ graph TB
     AG -->|DeepSeek/Groq| LLM[(LLM API)]
 ```
 
-*Detailed architecture, component diagram, and full sequence diagram in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).*
+*Detailed architecture, component diagram, and full sequence diagram in [docs/architecture.md](docs/architecture.md).*
 
 ---
 
@@ -176,7 +172,7 @@ self-healing-ci-agent/
 │   └── package.json
 ├── tests/                            # 251 backend tests
 ├── docs/                             # Documentation
-│   ├── ARCHITECTURE.md
+│   ├── architecture.md
 │   ├── architecture.md
 │   ├── workflows.md
 │   ├── api_reference.md
@@ -276,7 +272,7 @@ All endpoints return JSON. Interactive API docs at `http://localhost:8000/docs`.
 
 ```bash
 # Clone
-git clone https://github.com/YOUR_USERNAME/self-healing-ci-agent.git
+git clone https://github.com/[your-username]/self-healing-ci-agent.git
 cd self-healing-ci-agent
 
 # Virtual environment
@@ -484,7 +480,7 @@ The system includes a live benchmark dashboard accessible from the Streamlit UI:
 
 | Document | Contents |
 |----------|----------|
-| [ARCHITECTURE](docs/ARCHITECTURE.md) | Component tree, frontend/backend/data-flow diagrams, request sequence |
+| [ARCHITECTURE](docs/architecture.md) | Component tree, frontend/backend/data-flow diagrams, request sequence |
 | [Architecture](docs/architecture.md) | System layers, component diagrams, data flow, design decisions |
 | [Workflows](docs/workflows.md) | 6 workflow descriptions with Mermaid flowcharts, inputs/outputs |
 | [API Reference](docs/api_reference.md) | Complete API docs with request/response JSON examples |
@@ -515,17 +511,13 @@ The [`examples/`](examples/) directory contains sample data for demonstrations:
 
 | Page | Preview |
 |------|---------|
-| **Dashboard** — System overview with metric cards, charts, and activity feed | <img src="assets/screenshots/dashboard-hero.png" alt="Dashboard" width="400"/> |
-| **Review** — Radar chart, animated score ring, distribution bar, trend line | <img src="assets/screenshots/review.png" alt="Review Dashboard" width="400"/> |
-| **Retry** — Interactive timeline, donut chart, failure reason breakdown | <img src="assets/screenshots/retry.png" alt="Retry Timeline" width="400"/> |
-
-*(Add your own screenshots — see [Screenshot Guide](assets/README.md) for capture instructions)*
+| **Dashboard** — System overview with metric cards, charts, and activity feed | <img src="assets/screenshots/dashboard-hero.svg" alt="Dashboard" width="400"/> |
+| **Review** — Radar chart, animated score ring, distribution bar, trend line | <img src="assets/screenshots/review.svg" alt="Review Dashboard" width="400"/> |
+| **Retry** — Interactive timeline, donut chart, failure reason breakdown | <img src="assets/screenshots/retry.svg" alt="Retry Timeline" width="400"/> |
 
 ### Demo
 
-> <img src="assets/demo.gif" alt="Demo GIF" width="600"/>
->
-> *30-second walkthrough: landing → login → dashboard → review → retry → command palette → tasks*
+> *(30-second walkthrough: landing → login → dashboard → review → retry → command palette → tasks)*
 
 ---
 
@@ -559,7 +551,7 @@ This project was designed as a portfolio-grade demonstration of:
 | Skill | Demonstrated By |
 |-------|----------------|
 | **Full-stack AI engineering** | RAG pipeline → AI agents → validation → frontend dashboard |
-| **Production-quality full-stack** | Type annotations, error handling, structured logging, 311 tests |
+| **Production-quality full-stack** | Type annotations, error handling, structured logging, 318 tests |
 | **Multi-agent orchestration** | 8 specialized AI agents coordinated by workflows |
 | **System design** | Modular layered architecture with clear separation of concerns |
 | **DevOps & infrastructure** | Docker, GitHub Actions, environment configuration |

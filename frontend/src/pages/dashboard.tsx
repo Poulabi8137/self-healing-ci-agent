@@ -24,7 +24,7 @@ import {
   useChartData,
 } from '@/lib/api'
 import { tabContentVariants, safeTransition, duration } from '@/lib/motion'
-import { demoSummary, demoMetrics, demoRepos, demoReviewScores, demoValidationResults, demoPRStatistics } from '@/lib/demo-data'
+import { demoSummary, demoMetrics, demoRepos, demoReviewScores, demoValidationResults, demoPRStatistics, demoActivities } from '@/lib/demo-data'
 import type {
   DashboardSummary,
   DashboardMetrics,
@@ -473,7 +473,7 @@ export default function Dashboard() {
               </div>
               <PipelineVisualization autoRun compact />
             </GlassCard>
-            <ActivityFeed />
+            <ActivityFeed items={demoActivities} />
           </div>
         </div>
       </div>

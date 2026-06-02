@@ -7,7 +7,7 @@ import { StatusBadge } from '@/components/status-badge'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { useTriggerAnalysis, useTriggerFix } from '@/lib/api'
-import { demoAnalysisResult, demoFixResult, demoWorkflowLogsByType } from '@/lib/demo-data'
+import { demoWorkflowLogsByType } from '@/lib/demo-data'
 import type { AnalysisResult, FixResult } from '@/lib/types'
 
 const FAILURE_TYPES = Object.keys(demoWorkflowLogsByType)
@@ -67,10 +67,11 @@ export default function Analysis() {
               onChange={(e) => {
                 const key = e.target.value
                 if (!key || !demoWorkflowLogsByType[key]) return
-                setRepo(demoWorkflowLogsByType[key].repo)
-                setLogs(demoWorkflowLogsByType[key].logs)
-                setResult(demoAnalysisResult)
-                setFix(demoFixResult)
+                const entry = demoWorkflowLogsByType[key]
+                setRepo(entry.repo)
+                setLogs(entry.logs)
+                setResult(entry.analysis)
+                setFix(entry.fix)
               }}
               className="rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer max-w-[140px]"
             >

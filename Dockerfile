@@ -24,11 +24,17 @@ COPY --from=builder /root/.local /root/.local
 
 ENV PATH=/root/.local/bin:$PATH \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    WORKERS=1
 
 COPY . .
 
-RUN mkdir -p /app/data/logs /app/data/repositories /app/data/vector_store
+RUN mkdir -p /app/data/logs /app/data/repositories /app/data/vector_store \
+    && addgroup --system --gid 1001 appgroup \
+    && adduser --system --uid 1001 --gid 1001 --no-create-home appuser \
+    && chown -R appuser:appgroup /app/data
+
+USER appuser
 
 EXPOSE 8000
 
@@ -38,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 # Use gunicorn with uvicorn workers for production multi-worker support.
 # Worker count is configured via WORKERS env var (default: 1).
 # For single-worker mode (e.g., debug), set WORKERS=1.
-CMD ["gunicorn", "app.main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "120", "--graceful-timeout", "30", "--keep-alive", "5", "--max-requests", "10000", "--max-requests-jitter", "1000"]
+CMD gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers $WORKERS --timeout 120 --graceful-timeout 30 --keep-alive 5 --max-requests 10000 --max-requests-jitter 1000

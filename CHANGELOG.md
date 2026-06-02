@@ -54,12 +54,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced error classification categories
 
 #### Testing
-- 60 frontend tests (Vitest + React Testing Library + @testing-library/user-event)
+- 59 frontend tests (Vitest + React Testing Library + @testing-library/user-event)
 - 15 frontend test files covering all 11 pages, shared components, hooks, auth
 - Accessibility tests for ARIA attributes and keyboard navigation
 
 #### Documentation & Repository
-- Full ARCHITECTURE.md with Mermaid component tree, frontend/backend diagrams, request flow
+- Full architecture.md with Mermaid component tree, frontend/backend diagrams, request flow
 - GitHub issue templates (bug report, feature request)
 - GitHub pull request template
 - SECURITY.md with vulnerability reporting policy

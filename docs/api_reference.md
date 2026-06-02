@@ -18,7 +18,7 @@ Health check endpoint.
 ```json
 {
   "status": "healthy",
-  "timestamp": "2025-01-15T10:30:00.123456"
+  "timestamp": "2026-06-02T10:30:00.123456"
 }
 ```
 
@@ -30,7 +30,7 @@ Application version information.
 ```json
 {
   "app_name": "Self-Healing AI CI/CD Agent",
-  "version": "0.1.0"
+  "version": "1.0.0"
 }
 ```
 

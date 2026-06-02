@@ -16,6 +16,7 @@ Thank you for your interest in the Self-Healing CI/CD Agent. This document provi
 ### Prerequisites
 
 - Python 3.12 or later
+- Node.js 20 or later
 - Git
 - [DeepSeek API key](https://platform.deepseek.com) (for LLM features)
 - GitHub token with `repo` scope (for PR automation)
@@ -47,7 +48,9 @@ cp .env.example .env
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Frontend dashboard (terminal 2)
-streamlit run frontend/streamlit_app.py
+cd frontend
+npm install
+npm run dev
 ```
 
 The API is available at `http://localhost:8000` with interactive docs at `http://localhost:8000/docs`.
@@ -171,7 +174,13 @@ app/                    # Backend application
   utils/                # Shared utilities (logging, retry, circuit breaker)
   validation/           # Validation engine
   workflows/            # Workflow orchestrators
-tests/                  # Test suite
+frontend/               # React 19 + TypeScript + Vite SPA
+  src/
+    components/         # Reusable UI components
+    pages/              # Route pages (11 pages)
+    lib/                # Auth, API client, demo data
+    test/               # 59 frontend tests
+tests/                  # 259 backend tests
 docs/                   # Documentation
 docker/                 # Docker Compose files
 ```
