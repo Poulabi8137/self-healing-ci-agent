@@ -1,4 +1,4 @@
-import { useAuth } from '@/lib/auth'
+import { useAuth } from '@/lib/auth-context'
 
 export function DarkModeToggle() {
   const { isDark, toggleDark } = useAuth()

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../lib/auth'
+import { useAuth } from '../lib/auth-context'
 import { DarkModeToggle } from '../components/dark-mode'
 import { useEffect, useCallback, useRef } from 'react'
 import { AlertTriangle, ShieldCheck, GitPullRequest, BookOpen, BarChart3, Settings, ListTodo, LogOut, LayoutDashboard } from 'lucide-react'

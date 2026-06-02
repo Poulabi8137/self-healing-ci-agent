@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { AuthProvider, useAuth } from '@/lib/auth'
+import { AuthProvider } from '@/lib/auth'
+import { useAuth } from '@/lib/auth-context'
 
 function TestConsumer() {
   const { isAuthenticated, role, apiKey, login, logout } = useAuth()

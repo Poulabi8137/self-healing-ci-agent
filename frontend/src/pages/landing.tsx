@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
-import { useAuth } from '@/lib/auth'
+import { useAuth } from '@/lib/auth-context'
 import { springBouncy, springSnappy, stagger, easeOut } from '@/lib/motion'
 
 const containerVariants = {

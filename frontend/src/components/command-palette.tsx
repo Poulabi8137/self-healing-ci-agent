@@ -6,7 +6,7 @@ import {
   BookOpen, ListChecks, Key, Moon, LogOut, type LucideIcon,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/lib/auth'
+import { useAuth } from '@/lib/auth-context'
 
 interface Command {
   id: string

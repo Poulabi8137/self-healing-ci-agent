@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from './auth'
+import { useAuth } from './auth-context'
 import type {
   DashboardSummary,
   DashboardMetrics,
