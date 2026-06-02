@@ -20,6 +20,7 @@ export default function PR() {
   const [logs, setLogs] = useState('')
   const [dryRun, setDryRun] = useState(true)
   const [result, setResult] = useState<{ pr_url?: string; pr_number?: number; status: string; message: string } | null>(null)
+  const [branchTimestamp] = useState(() => Date.now().toString(36))
 
   const mutation = useTriggerPR()
 
@@ -193,7 +194,7 @@ export default function PR() {
                       <div className="flex items-center gap-2">
                         <GitCommit className="h-3 w-3 text-muted-foreground" />
                         <span className="text-muted-foreground">Head:</span>
-                        <span className="font-mono">fix/auto-{Date.now().toString(36)}</span>
+                        <span className="font-mono">fix/auto-{branchTimestamp}</span>
                       </div>
                     </div>
                   </SpotlightCard>
