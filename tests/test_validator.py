@@ -1,7 +1,5 @@
-import tempfile
 from pathlib import Path
 
-import pytest
 
 from app.validation.validator import run_full_validation
 

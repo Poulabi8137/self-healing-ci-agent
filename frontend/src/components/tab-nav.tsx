@@ -23,12 +23,15 @@ export function TabNav({
   }, [activeTab, tabs])
 
   return (
-    <div className="relative flex gap-1 border-b border-border">
+    <div className="relative flex gap-1 border-b border-border" role="tablist" aria-label="Content tabs">
       {tabs.map((tab, i) => (
         <button
           key={tab}
           ref={(el) => { refs.current[i] = el }}
           onClick={() => onChange(tab)}
+          role="tab"
+          aria-selected={activeTab === tab}
+          aria-controls={`tabpanel-${i}`}
           className={cn(
             'relative px-4 py-2.5 text-sm font-medium transition-colors',
             activeTab === tab

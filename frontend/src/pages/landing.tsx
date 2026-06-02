@@ -38,6 +38,7 @@ export default function Landing() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: easeOut }}
         className="fixed top-0 z-50 flex h-16 w-full items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-sm"
+        role="banner"
       >
         <div className="flex items-center gap-3">
           <motion.div
@@ -45,6 +46,7 @@ export default function Landing() {
             animate={{ rotate: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className="h-7 w-7 rounded bg-primary"
+            aria-hidden="true"
           />
           <span className="text-sm font-semibold">CI/CD Agent</span>
         </div>
@@ -52,6 +54,7 @@ export default function Landing() {
           <button
             onClick={toggleDark}
             className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? 'Light' : 'Dark'}
           </button>
@@ -60,13 +63,18 @@ export default function Landing() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+            aria-label="Sign in to the application"
           >
             Sign In
           </motion.button>
         </div>
       </motion.header>
 
-      <section ref={heroRef} className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16 text-center">
+      <section
+        ref={heroRef}
+        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16 text-center"
+        aria-label="Hero section"
+      >
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
           className="mx-auto max-w-3xl"
@@ -81,6 +89,7 @@ export default function Landing() {
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ repeat: Infinity, duration: 2 }}
               className="h-1.5 w-1.5 rounded-full bg-emerald-500"
+              aria-hidden="true"
             />
             Self-Healing CI/CD Agent v0.1.0
           </motion.div>
@@ -117,6 +126,7 @@ export default function Landing() {
               whileTap={{ scale: 0.97 }}
               transition={springSnappy}
               className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90"
+              aria-label="Get started with the application"
             >
               Get Started
             </motion.button>
@@ -165,6 +175,7 @@ export default function Landing() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         className="border-t border-border px-6 py-8 text-center text-sm text-muted-foreground"
+        role="contentinfo"
       >
         Self-Healing AI CI/CD Agent &mdash; Built with FastAPI, React &amp; Groq
       </motion.footer>

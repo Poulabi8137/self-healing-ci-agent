@@ -1,7 +1,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from app.validation.syntax_validator import (
     validate_python_syntax,

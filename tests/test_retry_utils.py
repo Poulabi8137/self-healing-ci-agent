@@ -1,6 +1,4 @@
 """Tests for retry utility with exponential backoff and jitter."""
-import asyncio
-from unittest.mock import patch
 
 import pytest
 

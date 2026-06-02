@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Activity, GitPullRequest, CheckCircle, AlertCircle, RotateCw, Shield } from 'lucide-react'
+import { Activity, CheckCircle, AlertCircle, RotateCw } from 'lucide-react'
 
 type ActivityItem = {
   id: string
@@ -15,14 +15,6 @@ const statusIcon = {
   failure: AlertCircle,
   running: Activity,
   pending: RotateCw,
-}
-
-const typeIcon = {
-  workflow: Activity,
-  pr: GitPullRequest,
-  validation: Shield,
-  retry: RotateCw,
-  review: Shield,
 }
 
 const sampleMessages = [
@@ -90,7 +82,7 @@ export function ActivityFeed() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card">
+    <div className="rounded-xl border border-border bg-card" role="feed" aria-label="Live activity feed" aria-live="polite">
       <div className="flex items-center justify-between border-b border-border px-5 py-3">
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-muted-foreground" />

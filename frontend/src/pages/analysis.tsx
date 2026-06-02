@@ -7,12 +7,13 @@ import { StatusBadge } from '@/components/status-badge'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { useTriggerAnalysis, useTriggerFix } from '@/lib/api'
+import type { AnalysisResult, FixResult } from '@/lib/types'
 
 export default function Analysis() {
   const [repo, setRepo] = useState('')
   const [logs, setLogs] = useState('')
-  const [result, setResult] = useState<Record<string, unknown> | null>(null)
-  const [fix, setFix] = useState<Record<string, unknown> | null>(null)
+  const [result, setResult] = useState<AnalysisResult | null>(null)
+  const [fix, setFix] = useState<FixResult | null>(null)
 
   const analysisMutation = useTriggerAnalysis()
   const fixMutation = useTriggerFix()
@@ -31,14 +32,14 @@ export default function Analysis() {
         repository_name: repo.trim(),
         logs: logs.trim(),
       })
-      setResult(analysisResult as Record<string, unknown>)
+      setResult(analysisResult as unknown as AnalysisResult)
       toast.success('Analysis complete')
 
       const fixResult = await fixMutation.mutateAsync({
         repository_name: repo.trim(),
         logs: logs.trim(),
       })
-      setFix(fixResult as Record<string, unknown>)
+      setFix(fixResult as unknown as FixResult)
       toast.success('Fix generated')
     } catch {
       toast.error('Analysis failed. Check server logs.')
@@ -57,10 +58,11 @@ export default function Analysis() {
       <div className="grid gap-6 lg:grid-cols-2">
         <SpotlightCard className="p-6">
           <h2 className="mb-4 text-sm font-medium text-muted-foreground">CI/CD Log Input</h2>
-          <div className="space-y-4">
+          <div className="space-y-4" role="form" aria-label="Analysis input form">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Repository name</label>
+              <label htmlFor="analysis-repo" className="mb-1.5 block text-xs font-medium text-muted-foreground">Repository name</label>
               <input
+                id="analysis-repo"
                 value={repo}
                 onChange={(e) => setRepo(e.target.value)}
                 placeholder="my-org/my-repo"
@@ -68,8 +70,9 @@ export default function Analysis() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">CI/CD Logs</label>
+              <label htmlFor="analysis-logs" className="mb-1.5 block text-xs font-medium text-muted-foreground">CI/CD Logs</label>
               <textarea
+                id="analysis-logs"
                 value={logs}
                 onChange={(e) => setLogs(e.target.value)}
                 placeholder="Paste CI/CD logs here..."
@@ -119,11 +122,11 @@ export default function Analysis() {
                     <AlertTriangle className="h-4 w-4 text-yellow-500" />
                     <h2 className="text-sm font-medium">Root Cause</h2>
                   </div>
-                  <p className="text-sm text-muted-foreground">{result.root_cause as string}</p>
+                  <p className="text-sm text-muted-foreground">{result.root_cause}</p>
                   <div className="mt-3 flex items-center gap-4">
-                    <StatusBadge status={(result.error_category as string) ?? 'unknown'} />
+                    <StatusBadge status={result.error_category ?? 'unknown'} />
                     <span className="text-xs text-muted-foreground">
-                      Confidence: {((result.confidence as number) * 100).toFixed(0)}%
+                      Confidence: {(result.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
                 </SpotlightCard>
@@ -135,9 +138,9 @@ export default function Analysis() {
                     <FileCode className="h-4 w-4 text-blue-500" />
                     <h2 className="text-sm font-medium">Affected Files</h2>
                   </div>
-                  {(result.affected_files as string[])?.length > 0 ? (
+                  {result.affected_files?.length > 0 ? (
                     <ul className="space-y-1">
-                      {(result.affected_files as string[]).map((f, i) => (
+                      {result.affected_files.map((f, i) => (
                         <motion.li
                           key={f}
                           initial={{ opacity: 0, x: -8 }}
@@ -162,12 +165,12 @@ export default function Analysis() {
                       <CheckCircle className="h-4 w-4 text-emerald-500" />
                       <h2 className="text-sm font-medium">Fix Summary</h2>
                     </div>
-                    <p className="text-sm text-muted-foreground">{fix.fix_summary as string}</p>
-                    {(fix.assumptions as string[])?.length > 0 && (
+                    <p className="text-sm text-muted-foreground">{fix.fix_summary}</p>
+                    {fix.assumptions?.length > 0 && (
                       <div className="mt-3">
                         <p className="mb-1 text-xs font-medium text-muted-foreground">Assumptions:</p>
                         <ul className="space-y-0.5">
-                          {(fix.assumptions as string[]).map((a, i) => (
+                          {fix.assumptions.map((a, i) => (
                             <li key={i} className="text-xs text-muted-foreground">• {a}</li>
                           ))}
                         </ul>
@@ -185,7 +188,7 @@ export default function Analysis() {
                       <h2 className="text-sm font-medium">Patch Preview</h2>
                     </div>
                     <pre className="overflow-x-auto rounded-lg bg-background p-4 text-xs text-muted-foreground">
-                      <code>{fix.patch as string}</code>
+                      <code>{fix.patch}</code>
                     </pre>
                   </SpotlightCard>
                 </TiltCard>

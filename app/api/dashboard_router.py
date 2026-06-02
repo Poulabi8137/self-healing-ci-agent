@@ -5,8 +5,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.utils.logger import get_logger
 from app.auth.dependencies import require_authenticated
 from app.dashboard.analytics_engine import compute_full_analytics
-from app.dashboard.benchmark_service import get_benchmark_summary, get_repository_benchmark
-from app.dashboard.metrics_collector import collect_workflow_metrics, collect_repository_metrics
+from app.dashboard.benchmark_service import get_benchmark_summary
+from app.dashboard.metrics_collector import collect_repository_metrics
 from app.dashboard.report_generator import generate_report
 from app.dashboard.charts import (
     get_success_vs_failure_dataset,

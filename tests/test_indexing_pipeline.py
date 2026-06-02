@@ -1,8 +1,10 @@
 import tempfile
-from pathlib import Path
+
+import pytest
 
 from app.rag.indexing_pipeline import _acquire_repo_path
-from app.rag.repo_loader import get_repo_name_from_url
+
+pytestmark = pytest.mark.slow
 
 
 class TestAcquireRepoPath:

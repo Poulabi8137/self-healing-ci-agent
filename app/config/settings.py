@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -66,7 +65,7 @@ class Settings(BaseSettings):
 
     # Deployment
     workers: int = 1
-    cors_origins: str = "*"
+    cors_origins: str = "http://localhost:5173,http://localhost:4173"
 
     # Circuit Breaker
     circuit_breaker_failure_threshold: int = 5
@@ -77,10 +76,7 @@ class Settings(BaseSettings):
     retry_backoff_factor: float = 2.0
     retry_jitter: float = 0.1
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
     def validate_secrets(self) -> list[str]:
         """Validate required secrets at startup. Returns list of warning messages."""

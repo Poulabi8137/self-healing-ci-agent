@@ -87,7 +87,7 @@ def simulate_apply_patch(
             "message": f"Patch validated — would modify {len(modified_files)} file(s). No changes applied (dry run).",
         }
 
-    logger.warning(f"Real patch application not yet implemented — use dry_run=True")
+    logger.warning("Real patch application not yet implemented — use dry_run=True")
     return {
         "applied": False,
         "files_modified": modified_files,

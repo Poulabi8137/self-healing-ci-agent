@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 SYSTEM_PROMPT = """You are an expert AI debugging engineer specialized in CI/CD pipeline failure analysis.

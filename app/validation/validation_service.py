@@ -4,8 +4,6 @@ from typing import Any, Dict, List, Optional
 from app.config.settings import settings
 from app.utils.logger import get_logger
 from app.validation.validator import run_full_validation
-from app.rag.repo_loader import load_local_repository
-from app.rag.indexing_pipeline import _acquire_repo_path
 
 logger = get_logger(__name__)
 

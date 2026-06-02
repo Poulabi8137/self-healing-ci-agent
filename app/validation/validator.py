@@ -37,7 +37,8 @@ def run_full_validation(
         "passed": True, "errors": [], "files_checked": 0,
     }
     if syntax_result["files_checked"] > 0:
-        logger.info(f"Syntax validation: {len(syntax_result['errors'])} errors in {syntax_result['files_checked']} files")
+        n_errors = len(syntax_result["errors"])
+        logger.info(f"Syntax validation: {n_errors} errors in {syntax_result['files_checked']} files")
     else:
         logger.info("No Python files to syntax-check")
 

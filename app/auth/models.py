@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 
@@ -14,5 +14,5 @@ class ApiKey(Base):
     name = Column(String(128), nullable=False)
     role = Column(String(32), nullable=False, default="candidate")
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     last_used_at = Column(DateTime, nullable=True)

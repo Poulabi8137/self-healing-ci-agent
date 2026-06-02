@@ -1,6 +1,6 @@
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.database.db import SessionLocal
 from app.queue.models import Task
@@ -24,7 +24,7 @@ async def _process_task(task: Task):
     db = SessionLocal()
     try:
         task.status = "running"
-        task.started_at = datetime.utcnow()
+        task.started_at = datetime.now(timezone.utc)
         task.attempts += 1
         db.commit()
 
@@ -40,7 +40,7 @@ async def _process_task(task: Task):
 
         task.status = "completed"
         task.result = json.dumps(result)
-        task.completed_at = datetime.utcnow()
+        task.completed_at = datetime.now(timezone.utc)
         db.commit()
         logger.info(f"Task {task.id} ({task.type}) completed (attempt {task.attempts})")
     except Exception as e:
@@ -51,7 +51,7 @@ async def _process_task(task: Task):
         else:
             task.status = "failed"
             task.error = str(e)
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(timezone.utc)
             logger.warning(f"Task {task.id} failed after {task.attempts} attempts")
         db.commit()
     finally:

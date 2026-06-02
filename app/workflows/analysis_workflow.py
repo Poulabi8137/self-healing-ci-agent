@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from app.utils.logger import get_logger
 from app.parsers.log_parser import parse_logs

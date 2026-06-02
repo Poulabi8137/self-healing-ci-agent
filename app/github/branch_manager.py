@@ -1,5 +1,5 @@
-import datetime
-from typing import Any, Dict, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict
 
 from app.config.settings import settings
 from app.github.github_client import GitHubClient
@@ -22,7 +22,7 @@ def generate_branch_name(
         Branch name string (e.g. 'fix/runtime-error-123').
     """
     safe_category = error_category.lower().replace("_", "-").replace(" ", "-")
-    timestamp = datetime.datetime.utcnow().strftime("%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%H%M%S")
     return f"fix/{safe_category}-{timestamp}-{attempt_number}"
 
 

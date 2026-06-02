@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Depends
 
@@ -18,7 +17,11 @@ router = APIRouter()
 async def api_submit_task(req: SubmitTaskRequest, user=Depends(require_authenticated)):
     valid_types = {"analysis", "fix", "validation", "retry", "review", "pr_create", "rag_index", "rag_retrieve"}
     if req.type not in valid_types:
-        raise HTTPException(status_code=400, detail=f"Invalid task type. Must be one of: {', '.join(sorted(valid_types))}")
+        types_str = ", ".join(sorted(valid_types))
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid task type. Must be one of: {types_str}",
+        )
 
     db = SessionLocal()
     try:

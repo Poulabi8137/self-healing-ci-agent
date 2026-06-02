@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "self-healing-ci-agent"
+version = "0.1.0"
+description = "Self-Healing AI CI/CD Agent"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+timeout = 30
+
+[tool.ruff]
+target-version = "py312"
+line-length = 200
+
+[tool.ruff.lint]
+select = ["F", "E", "W"]
+
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["F841", "E501"]
+"app/prompts/*.py" = ["E501"]
+"app/agents/*.py" = ["E501"]
+"app/database/models.py" = ["E501"]
+"app/rag/chunking.py" = ["E501"]
+"app/utils/logger.py" = ["E501"]

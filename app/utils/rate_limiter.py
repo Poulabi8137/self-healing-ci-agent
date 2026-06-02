@@ -10,7 +10,16 @@ from starlette.requests import Request
 
 from app.config.settings import settings
 
+from app.utils.logger import get_logger
+
+_log = get_logger(__name__)
+
 _window_store: dict[str, list[float]] = defaultdict(list)
+
+_log.warning(
+    "Using in-memory rate limiter — limits reset on server restart. "
+    "For multi-worker deployments, replace with Redis-backed store."
+)
 
 
 def reset_rate_limits():

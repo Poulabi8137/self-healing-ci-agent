@@ -21,7 +21,11 @@ export function MetricCard({
     <TiltCard>
       <SpotlightCard className="p-5">
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className="mt-2 font-mono text-2xl font-semibold tabular-nums tracking-tight">
+        <p
+          className="mt-2 font-mono text-2xl font-semibold tabular-nums tracking-tight"
+          aria-live="polite"
+          aria-label={`${label}: ${prefix ?? ''}${value.toFixed(decimals)}${suffix}`}
+        >
           <AnimatedCounter value={value} decimals={decimals} prefix={prefix} suffix={suffix} />
         </p>
         {trend && (
@@ -29,6 +33,7 @@ export function MetricCard({
             className={`mt-1 text-xs ${
               trend.positive ? 'text-emerald-500' : 'text-red-500'
             }`}
+            aria-label={`${trend.positive ? 'Up' : 'Down'} ${Math.abs(trend.value)} percent from last week`}
           >
             {trend.positive ? '↑' : '↓'} {Math.abs(trend.value)}% from last week
           </p>

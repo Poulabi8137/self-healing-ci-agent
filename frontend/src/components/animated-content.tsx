@@ -41,6 +41,8 @@ export function AnimatedContent({
           key="skeleton"
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}
+          aria-busy="true"
+          aria-label="Loading content"
         >
           {skeleton}
         </motion.div>

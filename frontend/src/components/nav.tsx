@@ -34,19 +34,20 @@ const items: NavItem[] = [
 ]
 
 export function Nav() {
-  const { user } = useAuth()
-  const role = user?.role ?? 'candidate'
+  const { role } = useAuth()
+  const userRole = role ?? 'candidate'
 
   const visible = items.filter(
-    (item) => !item.roles || item.roles.includes(role),
+    (item) => !item.roles || item.roles.includes(userRole as 'candidate' | 'recruiter' | 'admin'),
   )
 
   return (
-    <nav className="flex flex-col gap-1 px-3 py-4">
+    <nav className="flex flex-col gap-1 px-3 py-4" aria-label="Sidebar navigation">
       {visible.map((item) => (
         <NavLink
           key={item.href}
           to={item.href}
+          aria-label={item.label}
           className={({ isActive }) =>
             cn(
               'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -56,7 +57,7 @@ export function Nav() {
             )
           }
         >
-          <item.icon className="h-4 w-4" />
+          <item.icon className="h-4 w-4" aria-hidden="true" />
           {item.label}
         </NavLink>
       ))}

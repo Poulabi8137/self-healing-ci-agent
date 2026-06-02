@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, Column, DateTime, Float, Index, Integer, String, Text
 
@@ -16,8 +16,8 @@ class Repository(Base):
     is_indexed = Column(Boolean, default=False)
     indexed_at = Column(DateTime, nullable=True)
     chunks_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<Repository(id={self.id}, name='{self.full_name}')>"
@@ -35,7 +35,7 @@ class Failure(Base):
     error_message = Column(Text)
     error_logs = Column(Text)
     status = Column(String(50), default="detected")
-    detected_at = Column(DateTime, default=datetime.datetime.utcnow)
+    detected_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     resolved_at = Column(DateTime, nullable=True)
 
     def __repr__(self):
@@ -52,7 +52,7 @@ class Fix(Base):
     fix_type = Column(String(50), default="auto")
     status = Column(String(50), default="suggested")
     confidence_score = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     applied_at = Column(DateTime, nullable=True)
 
     def __repr__(self):
@@ -73,7 +73,7 @@ class RetryAttempt(Base):
     fix_summary = Column(Text)
     validation_status = Column(String(50), default="unknown")
     confidence_score = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<RetryAttempt(id={self.id}, repo='{self.repository_name}', attempt={self.attempt_number}, status='{self.validation_status}')>"
@@ -90,7 +90,7 @@ class ReviewResult(Base):
     repository_name = Column(String(255), nullable=False)
     overall_score = Column(Float, default=0.0)
     recommendation = Column(String(50), default="pending")
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<ReviewResult(id={self.id}, repo='{self.repository_name}', score={self.overall_score}, rec='{self.recommendation}')>"
@@ -110,7 +110,7 @@ class PRRecord(Base):
     pr_title = Column(Text)
     status = Column(String(50), default="simulated")
     dry_run = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<PRRecord(id={self.id}, repo='{self.repository_name}', status='{self.status}', dry_run={self.dry_run})>"
@@ -128,7 +128,7 @@ class BenchmarkRun(Base):
     validation_pass_rate = Column(Float, default=0.0)
     avg_review_score = Column(Float, default=0.0)
     pr_created = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<BenchmarkRun(id={self.id}, repo='{self.repository_name}', attempts={self.total_attempts})>"
@@ -145,8 +145,8 @@ class RepositoryMetrics(Base):
     success_rate = Column(Float, default=0.0)
     avg_confidence = Column(Float, default=0.0)
     last_run_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<RepoMetrics(id={self.id}, repo='{self.repository_name}', rate={self.success_rate})>"
@@ -161,7 +161,7 @@ class WorkflowMetrics(Base):
     successful_runs = Column(Integer, default=0)
     failed_runs = Column(Integer, default=0)
     avg_duration_seconds = Column(Float, default=0.0)
-    recorded_at = Column(DateTime, default=datetime.datetime.utcnow)
+    recorded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<WorkflowMetrics(id={self.id}, type='{self.workflow_type}', runs={self.total_runs})>"
@@ -177,7 +177,7 @@ class Metric(Base):
     manual_fixes = Column(Integer, default=0)
     success_rate = Column(Float, default=0.0)
     avg_resolution_time = Column(Float, default=0.0)
-    recorded_at = Column(DateTime, default=datetime.datetime.utcnow)
+    recorded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<Metric(id={self.id}, repo_id={self.repository_id})>"

@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pytest
 
 from app.validation.build_validator import validate_build
 

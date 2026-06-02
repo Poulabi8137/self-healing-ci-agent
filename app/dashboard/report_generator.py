@@ -24,7 +24,7 @@ def generate_report(report_type: str = "full") -> Dict[str, Any]:
 
     base_report: Dict[str, Any] = {
         "report_type": report_type,
-        "generated_at": datetime.datetime.utcnow().isoformat(),
+        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "system_version": "0.1.0",
     }
 

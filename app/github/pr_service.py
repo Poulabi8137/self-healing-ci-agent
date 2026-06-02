@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from app.config.settings import settings
 from app.github.branch_manager import generate_branch_name, create_branch
@@ -50,7 +50,7 @@ async def create_pull_request(
     logger.info(f"Starting PR creation for '{repo_name}' (dry_run={dry_run}, approved={approved})")
 
     # --- 1. Patch validation ---
-    patch_result = simulate_apply_patch(patch, dry_run=dry_run)
+    simulate_apply_patch(patch, dry_run=dry_run)
 
     # --- 2. Branch ---
     branch_name = generate_branch_name(error_category)

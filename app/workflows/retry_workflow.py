@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.config.settings import settings
@@ -100,6 +100,7 @@ async def run_retry_workflow(
     attempt = 1
     analysis = None
     previous_fix: Optional[Dict[str, Any]] = None
+    previous_validation: Optional[Dict[str, Any]] = None
 
     while attempt <= max_attempts:
         logger.info(f"Retry attempt {attempt}/{max_attempts}")
@@ -146,7 +147,7 @@ async def run_retry_workflow(
             "confidence_score": fix_result.get("confidence", 0.0),
             "syntax_errors": len(validation_report.get("syntax_errors", [])),
             "failed_tests": validation_report.get("failed_tests", []),
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         retry_history.append(history_entry)
 

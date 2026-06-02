@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 RETRY_SYSTEM_PROMPT = """You are an expert AI software engineer specialized in diagnosing failed code fixes and generating improved patches.
 

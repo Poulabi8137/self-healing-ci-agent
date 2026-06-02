@@ -23,9 +23,7 @@ def ttl_cache(ttl_seconds: int = 30, maxsize: int = 128):
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            cache_key = None
             try:
-                cache_key = args + tuple(sorted(kwargs.items()))
                 result = _cached(*args, **kwargs)
                 elapsed = time.time() - result[0]
                 if elapsed < ttl_seconds:

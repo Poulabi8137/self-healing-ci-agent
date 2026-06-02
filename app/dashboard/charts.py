@@ -1,9 +1,7 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from app.utils.logger import get_logger
 from app.dashboard.analytics_engine import (
-    compute_success_rate,
-    compute_average_retries,
     compute_validation_pass_rate,
     compute_average_review_score,
     compute_retry_distribution,

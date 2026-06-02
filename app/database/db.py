@@ -53,8 +53,6 @@ def _verify_migrations():
 
 def init_db():
     from app.database.models import Base as ModelsBase
-    import app.auth.models
-    import app.queue.models
 
     try:
         _verify_migrations()

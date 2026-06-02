@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from app.utils.logger import get_logger
 from app.agents.review_orchestrator import ReviewOrchestrator
@@ -129,5 +129,6 @@ async def run_review_workflow(
         "review": review_report,
     }
 
-    logger.info(f"Review workflow complete for '{repository_name}' — recommendation: {review_report.get('recommendation')}")
+    rec = review_report.get("recommendation")
+    logger.info(f"Review workflow complete for '{repository_name}' — recommendation: {rec}")
     return result

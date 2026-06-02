@@ -4,7 +4,7 @@ import httpx
 
 from app.config.settings import settings
 from app.llm.base import BaseLLMProvider, LLMResponse
-from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
+from app.utils.circuit_breaker import CircuitBreaker
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)

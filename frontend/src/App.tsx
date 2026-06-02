@@ -1,24 +1,26 @@
-import { useState, useCallback } from 'react'
+import { lazy, Suspense, useState, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LazyMotion, domAnimation, AnimatePresence } from 'framer-motion'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/lib/auth'
-import { Layout } from '@/components/layout'
+import Layout from '@/components/layout'
 import { AuthGuard, PublicGuard } from '@/components/auth-guard'
 import { CommandPalette } from '@/components/command-palette'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import Landing from '@/pages/landing'
 import Login from '@/pages/login'
-import Dashboard from '@/pages/dashboard'
-import Analysis from '@/pages/analysis'
-import Validation from '@/pages/validation'
-import Retry from '@/pages/retry'
-import Review from '@/pages/review'
-import PR from '@/pages/pr'
-import Indexing from '@/pages/indexing'
-import Tasks from '@/pages/tasks'
-import AdminKeys from '@/pages/admin-keys'
+
+const Dashboard = lazy(() => import('@/pages/dashboard'))
+const Analysis = lazy(() => import('@/pages/analysis'))
+const Validation = lazy(() => import('@/pages/validation'))
+const Retry = lazy(() => import('@/pages/retry'))
+const Review = lazy(() => import('@/pages/review'))
+const PR = lazy(() => import('@/pages/pr'))
+const Indexing = lazy(() => import('@/pages/indexing'))
+const Tasks = lazy(() => import('@/pages/tasks'))
+const AdminKeys = lazy(() => import('@/pages/admin-keys'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +30,14 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+function PageLoader() {
+  return (
+    <div className="flex h-full min-h-[60vh] items-center justify-center">
+      <div className="h-8 w-8 animate-pulse rounded-full bg-muted-foreground/20" />
+    </div>
+  )
+}
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -41,15 +51,15 @@ function AnimatedRoutes() {
         </Route>
         <Route element={<AuthGuard />}>
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/analysis" element={<Analysis />} />
-            <Route path="/validation" element={<Validation />} />
-            <Route path="/retry" element={<Retry />} />
-            <Route path="/review" element={<Review />} />
-            <Route path="/pr" element={<PR />} />
-            <Route path="/indexing" element={<Indexing />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/admin/keys" element={<AdminKeys />} />
+            <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
+            <Route path="/analysis" element={<Suspense fallback={<PageLoader />}><Analysis /></Suspense>} />
+            <Route path="/validation" element={<Suspense fallback={<PageLoader />}><Validation /></Suspense>} />
+            <Route path="/retry" element={<Suspense fallback={<PageLoader />}><Retry /></Suspense>} />
+            <Route path="/review" element={<Suspense fallback={<PageLoader />}><Review /></Suspense>} />
+            <Route path="/pr" element={<Suspense fallback={<PageLoader />}><PR /></Suspense>} />
+            <Route path="/indexing" element={<Suspense fallback={<PageLoader />}><Indexing /></Suspense>} />
+            <Route path="/tasks" element={<Suspense fallback={<PageLoader />}><Tasks /></Suspense>} />
+            <Route path="/admin/keys" element={<Suspense fallback={<PageLoader />}><AdminKeys /></Suspense>} />
           </Route>
         </Route>
       </Routes>
@@ -65,10 +75,10 @@ function AppShell() {
   useKeyboardShortcuts(openPalette)
 
   return (
-    <>
+    <ErrorBoundary>
       <AnimatedRoutes />
       <CommandPalette open={paletteOpen} onClose={closePalette} />
-    </>
+    </ErrorBoundary>
   )
 }
 

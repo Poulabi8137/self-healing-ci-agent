@@ -1,10 +1,8 @@
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
-from app.config.settings import settings
 from app.utils.logger import get_logger
 from app.rag.vector_store import VectorStoreService
 

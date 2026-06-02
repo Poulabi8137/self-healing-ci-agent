@@ -1,6 +1,4 @@
 """Tests for production hardening: rate limiting, exception leakage, body limits, JSON logging."""
-import json
-import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -114,7 +112,6 @@ class TestJsonLogging:
     def test_json_sink_produces_valid_json(self, tmp_path):
         import json as _json
         from loguru import logger as _loguru
-        _loguru.remove()
         json_file = tmp_path / "test.jsonl"
 
         def json_sink(msg):
@@ -131,9 +128,9 @@ class TestJsonLogging:
             with open(json_file, "a", encoding="utf-8") as f:
                 f.write(_json.dumps(subset) + "\n")
 
-        _loguru.add(json_sink)
+        sink_id = _loguru.add(json_sink)
         _loguru.bind(request_id="req-001").info("hello")
-        _loguru.remove()
+        _loguru.remove(sink_id)
         raw = json_file.read_bytes().decode("utf-8").strip()
         lines = raw.splitlines()
         assert len(lines) == 1
@@ -142,12 +139,10 @@ class TestJsonLogging:
         assert record["request_id"] == "req-001"
 
     def test_loguru_serialize_includes_extra(self, tmp_path):
-        import json as _json
         from loguru import logger as _loguru
-        _loguru.remove()
         json_file = tmp_path / "test_req.jsonl"
-        _loguru.add(json_file, serialize=True)
+        sink_id = _loguru.add(json_file, serialize=True)
         _loguru.bind(request_id="abc-123").info("req test")
-        _loguru.remove()
+        _loguru.remove(sink_id)
         raw = json_file.read_bytes().decode("utf-8").strip()
         assert "abc-123" in raw

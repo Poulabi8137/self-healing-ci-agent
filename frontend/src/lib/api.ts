@@ -1,13 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from './auth'
+import type {
+  DashboardSummary,
+  DashboardMetrics,
+  RepositoryInfo,
+  ReviewScores,
+  ValidationResults,
+  PRStatistics,
+  AuthMeResponse,
+  TaskSubmitResponse,
+  TaskStatusResponse,
+  IndexStatusResponse,
+  TriggerResponse,
+  PRCreateResponse,
+} from './types'
 
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 
 export class ApiError extends Error {
   status: number
-  body: unknown
+  body: Record<string, unknown>
 
-  constructor(status: number, body: unknown) {
+  constructor(status: number, body: Record<string, unknown>) {
     super(`API error: ${status}`)
     this.name = 'ApiError'
     this.status = status
@@ -34,25 +48,21 @@ async function fetchJson<T>(
   })
 
   if (res.status === 401) {
-    throw new ApiError(401, await res.json().catch(() => null))
+    throw new ApiError(401, await res.json().catch(() => ({})))
   }
 
   if (!res.ok) {
-    throw new ApiError(res.status, await res.json().catch(() => null))
+    throw new ApiError(res.status, await res.json().catch(() => ({})))
   }
 
-  return res.json()
+  return res.json() as Promise<T>
 }
-
-// ========================
-// Dashboard Queries
-// ========================
 
 export function useDashboardSummary() {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>>({
+  return useQuery<DashboardSummary>({
     queryKey: ['dashboard', 'summary'],
-    queryFn: () => fetchJson('/dashboard/summary', getKey(apiKey)),
+    queryFn: () => fetchJson<DashboardSummary>('/dashboard/summary', getKey(apiKey)),
     enabled: !!apiKey,
     refetchInterval: 30_000,
   })
@@ -60,9 +70,9 @@ export function useDashboardSummary() {
 
 export function useDashboardMetrics() {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>>({
+  return useQuery<DashboardMetrics>({
     queryKey: ['dashboard', 'metrics'],
-    queryFn: () => fetchJson('/dashboard/metrics', getKey(apiKey)),
+    queryFn: () => fetchJson<DashboardMetrics>('/dashboard/metrics', getKey(apiKey)),
     enabled: !!apiKey,
     refetchInterval: 30_000,
   })
@@ -70,34 +80,42 @@ export function useDashboardMetrics() {
 
 export function useDashboardRepositories() {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>[]>({
+  return useQuery<RepositoryInfo[]>({
     queryKey: ['dashboard', 'repositories'],
-    queryFn: () => fetchJson('/dashboard/repositories', getKey(apiKey)),
+    queryFn: () => fetchJson<RepositoryInfo[]>('/dashboard/repositories', getKey(apiKey)),
     enabled: !!apiKey,
     refetchInterval: 30_000,
   })
 }
 
-export function useChartData(endpoint: string) {
+export function useChartData<T>(endpoint: string) {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>>({
+  return useQuery<T>({
     queryKey: ['dashboard', 'charts', endpoint],
-    queryFn: () => fetchJson(`/dashboard/charts/${endpoint}`, getKey(apiKey)),
+    queryFn: () => fetchJson<T>(`/dashboard/charts/${endpoint}`, getKey(apiKey)),
     enabled: !!apiKey,
     refetchInterval: 30_000,
   })
 }
 
-// ========================
-// Analysis Mutations
-// ========================
+export function useReviewScores() {
+  return useChartData<ReviewScores>('review-scores')
+}
+
+export function useValidationResults() {
+  return useChartData<ValidationResults>('validation-results')
+}
+
+export function usePRStatistics() {
+  return useChartData<PRStatistics>('pr-statistics')
+}
 
 export function useTriggerAnalysis() {
   const { apiKey } = useAuth()
   const queryClient = useQueryClient()
-  return useMutation<Record<string, unknown>, Error, { repository_name: string; logs: string }>({
+  return useMutation<TriggerResponse, Error, { repository_name: string; logs: string }>({
     mutationFn: (data) =>
-      fetchJson('/analysis/debug', getKey(apiKey), {
+      fetchJson<TriggerResponse>('/analysis/debug', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -109,84 +127,64 @@ export function useTriggerAnalysis() {
 
 export function useTriggerFix() {
   const { apiKey } = useAuth()
-  return useMutation<Record<string, unknown>, Error, { repository_name: string; logs: string }>({
+  return useMutation<TriggerResponse, Error, { repository_name: string; logs: string }>({
     mutationFn: (data) =>
-      fetchJson('/fix/generate', getKey(apiKey), {
+      fetchJson<TriggerResponse>('/fix/generate', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
   })
 }
-
-// ========================
-// Validation Mutation
-// ========================
 
 export function useTriggerValidation() {
   const { apiKey } = useAuth()
-  return useMutation<Record<string, unknown>, Error, { repository_name: string; logs: string }>({
+  return useMutation<TriggerResponse, Error, { repository_name: string; logs: string }>({
     mutationFn: (data) =>
-      fetchJson('/validation/run', getKey(apiKey), {
+      fetchJson<TriggerResponse>('/validation/run', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
   })
 }
-
-// ========================
-// Retry Mutation
-// ========================
 
 export function useTriggerRetry() {
   const { apiKey } = useAuth()
-  return useMutation<Record<string, unknown>, Error, { repository_name: string; logs: string }>({
+  return useMutation<TriggerResponse, Error, { repository_name: string; logs: string }>({
     mutationFn: (data) =>
-      fetchJson('/retry/run', getKey(apiKey), {
+      fetchJson<TriggerResponse>('/retry/run', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
   })
 }
-
-// ========================
-// Review Mutation
-// ========================
 
 export function useTriggerReview() {
   const { apiKey } = useAuth()
-  return useMutation<Record<string, unknown>, Error, { repository_name: string; logs: string }>({
+  return useMutation<TriggerResponse, Error, { repository_name: string; logs: string }>({
     mutationFn: (data) =>
-      fetchJson('/review/run', getKey(apiKey), {
+      fetchJson<TriggerResponse>('/review/run', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
   })
 }
-
-// ========================
-// PR Mutation
-// ========================
 
 export function useTriggerPR() {
   const { apiKey } = useAuth()
-  return useMutation<Record<string, unknown>, Error, { repository_name: string; logs: string; dry_run: boolean; approved: boolean }>({
+  return useMutation<PRCreateResponse, Error, { repository_name: string; logs: string; dry_run: boolean; approved: boolean }>({
     mutationFn: (data) =>
-      fetchJson('/pr/create', getKey(apiKey), {
+      fetchJson<PRCreateResponse>('/pr/create', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
   })
 }
 
-// ========================
-// Indexing Mutations
-// ========================
-
 export function useTriggerIndex() {
   const { apiKey } = useAuth()
-  return useMutation<Record<string, unknown>, Error, { repo_url: string; branch?: string | null }>({
+  return useMutation<TriggerResponse, Error, { repo_url: string; branch?: string | null }>({
     mutationFn: (data) =>
-      fetchJson('/rag/index', getKey(apiKey), {
+      fetchJson<TriggerResponse>('/rag/index', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -195,22 +193,18 @@ export function useTriggerIndex() {
 
 export function useIndexStatus(repoName: string) {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>>({
+  return useQuery<IndexStatusResponse>({
     queryKey: ['rag', 'index', repoName],
-    queryFn: () => fetchJson(`/rag/index/${repoName}/status`, getKey(apiKey)),
+    queryFn: () => fetchJson<IndexStatusResponse>(`/rag/index/${repoName}/status`, getKey(apiKey)),
     enabled: !!apiKey && !!repoName,
   })
 }
 
-// ========================
-// Task Queries
-// ========================
-
 export function useSubmitTask() {
   const { apiKey } = useAuth()
-  return useMutation<Record<string, unknown>, Error, { type: string; payload: Record<string, unknown> }>({
+  return useMutation<TaskSubmitResponse, Error, { type: string; payload: Record<string, unknown> }>({
     mutationFn: (data) =>
-      fetchJson('/tasks/submit', getKey(apiKey), {
+      fetchJson<TaskSubmitResponse>('/tasks/submit', getKey(apiKey), {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -219,9 +213,9 @@ export function useSubmitTask() {
 
 export function useTaskStatus(taskId: number | null) {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>>({
+  return useQuery<TaskStatusResponse>({
     queryKey: ['tasks', taskId],
-    queryFn: () => fetchJson(`/tasks/${taskId}`, getKey(apiKey)),
+    queryFn: () => fetchJson<TaskStatusResponse>(`/tasks/${taskId}`, getKey(apiKey)),
     enabled: !!apiKey && taskId !== null,
     refetchInterval: (query) => {
       const s = query.state.data?.status
@@ -232,23 +226,19 @@ export function useTaskStatus(taskId: number | null) {
 
 export function useTaskList() {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>[]>({
+  return useQuery<TaskStatusResponse[]>({
     queryKey: ['tasks'],
-    queryFn: () => fetchJson('/tasks/', getKey(apiKey)),
+    queryFn: () => fetchJson<TaskStatusResponse[]>('/tasks/', getKey(apiKey)),
     enabled: !!apiKey,
     refetchInterval: 10_000,
   })
 }
 
-// ========================
-// Auth Queries
-// ========================
-
 export function useAuthMe() {
   const { apiKey } = useAuth()
-  return useQuery<Record<string, unknown>>({
+  return useQuery<AuthMeResponse>({
     queryKey: ['auth', 'me'],
-    queryFn: () => fetchJson('/auth/me', getKey(apiKey)),
+    queryFn: () => fetchJson<AuthMeResponse>('/auth/me', getKey(apiKey)),
     enabled: !!apiKey,
   })
 }

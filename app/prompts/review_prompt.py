@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 REVIEW_SYSTEM_PROMPT = """You are an expert code reviewer specialized in evaluating AI-generated code fixes.
 

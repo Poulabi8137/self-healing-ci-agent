@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 PR_SYSTEM_PROMPT = """You are an expert software engineer generating pull request descriptions.
 

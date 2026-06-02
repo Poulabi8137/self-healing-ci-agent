@@ -49,7 +49,6 @@ class FixAgent:
             fix_summary, patch, confidence, assumptions.
         """
         retrieval_context = ""
-        retrieved_files: List[str] = []
 
         try:
             emb = get_embedding_service().get_embeddings()
@@ -62,9 +61,6 @@ class FixAgent:
             )
             if results:
                 retrieval_context = retriever.format_retrieval_context(results)
-                retrieved_files = list({
-                    r["metadata"].get("file_path", "unknown") for r in results
-                })
                 logger.info(f"Retrieved {len(results)} context chunks for fix generation")
         except Exception as e:
             logger.warning(f"Retrieval failed during fix generation: {e}")

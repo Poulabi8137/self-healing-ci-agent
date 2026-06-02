@@ -137,7 +137,10 @@ def collect_repository_metrics() -> List[Dict[str, Any]]:
             "total_runs": stats["total_runs"],
             "successful_runs": stats["successful_runs"],
             "failed_runs": stats["failed_runs"],
-            "avg_confidence": round(stats["confidence_sum"] / stats["confidence_count"], 2) if stats["confidence_count"] > 0 else 0.0,
+            "avg_confidence": (
+                round(stats["confidence_sum"] / stats["confidence_count"], 2)
+                if stats["confidence_count"] > 0 else 0.0
+            ),
             "success_rate": round(
                 stats["successful_runs"] / stats["total_runs"] * 100, 1
             ) if stats["total_runs"] > 0 else 0.0,

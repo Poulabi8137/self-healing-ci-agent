@@ -21,6 +21,14 @@ import {
   useChartData,
 } from '@/lib/api'
 import { tabContentVariants, safeTransition, duration } from '@/lib/motion'
+import type {
+  DashboardSummary,
+  DashboardMetrics,
+  RepositoryInfo,
+  ReviewScores,
+  ValidationResults,
+  PRStatistics,
+} from '@/lib/types'
 
 const tabs = [
   'System Overview',
@@ -42,14 +50,8 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   )
 }
 
-function OverviewTab({ summary }: { summary: Record<string, unknown> }) {
-  const health = (summary?.system_health ?? {}) as Record<string, unknown>
-  const confidence = (summary?.confidence ?? {}) as Record<string, unknown>
-
-  const totalRuns = (health.total_workflow_runs as number) ?? 0
-  const successRate = (health.overall_success_rate as number) ?? 0
-  const avgRetries = (health.average_retries_per_run as number) ?? 0
-  const avgConfidence = (confidence.overall_confidence as number) ?? 0
+function OverviewTab({ summary }: { summary: DashboardSummary }) {
+  const { system_health: health, confidence } = summary
 
   return (
     <motion.div
@@ -61,16 +63,16 @@ function OverviewTab({ summary }: { summary: Record<string, unknown> }) {
     >
       <StaggerGrid className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StaggerItem>
-          <MetricCard label="Total Runs" value={totalRuns} trend={{ value: 12, positive: true }} />
+          <MetricCard label="Total Runs" value={health.total_workflow_runs} trend={{ value: 12, positive: true }} />
         </StaggerItem>
         <StaggerItem>
-          <MetricCard label="Success Rate" value={successRate} suffix="%" decimals={1} />
+          <MetricCard label="Success Rate" value={health.overall_success_rate} suffix="%" decimals={1} />
         </StaggerItem>
         <StaggerItem>
-          <MetricCard label="Avg Retries" value={avgRetries} decimals={2} />
+          <MetricCard label="Avg Retries" value={health.average_retries_per_run} decimals={2} />
         </StaggerItem>
         <StaggerItem>
-          <MetricCard label="Confidence" value={avgConfidence} decimals={2} />
+          <MetricCard label="Confidence" value={confidence.overall_confidence} decimals={2} />
         </StaggerItem>
       </StaggerGrid>
 
@@ -113,10 +115,8 @@ function OverviewTab({ summary }: { summary: Record<string, unknown> }) {
   )
 }
 
-function ReposTab({ repos }: { repos: unknown[] }) {
-  const data = (repos as Array<Record<string, unknown>>) ?? []
-
-  if (!data.length) {
+function ReposTab({ repos }: { repos: RepositoryInfo[] }) {
+  if (!repos.length) {
     return (
       <EmptyState
         icon={Activity}
@@ -146,18 +146,18 @@ function ReposTab({ repos }: { repos: unknown[] }) {
               </tr>
             </thead>
             <tbody>
-              {data.map((r, i) => (
+              {repos.map((r, i) => (
                 <motion.tr
-                  key={r.repository_name as string}
+                  key={r.repository_name}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.03, duration: 0.2 }}
                   className="border-b border-border last:border-0 hover:bg-muted/50"
                 >
-                  <td className="px-4 py-3 font-medium">{r.repository_name as string}</td>
-                  <td className="px-4 py-3 text-right font-mono tabular-nums">{r.total_runs as number}</td>
-                  <td className="px-4 py-3 text-right font-mono tabular-nums">{(r.success_rate as number).toFixed(1)}%</td>
-                  <td className="px-4 py-3 text-right font-mono tabular-nums">{(r.avg_confidence as number).toFixed(2)}</td>
+                  <td className="px-4 py-3 font-medium">{r.repository_name}</td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums">{r.total_runs}</td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums">{r.success_rate.toFixed(1)}%</td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums">{r.avg_confidence.toFixed(2)}</td>
                 </motion.tr>
               ))}
             </tbody>
@@ -168,10 +168,10 @@ function ReposTab({ repos }: { repos: unknown[] }) {
   )
 }
 
-function RetryTab({ metrics }: { metrics: Record<string, unknown> }) {
-  const wm = (metrics?.workflow_metrics ?? {}) as Record<string, unknown>
-  const totalRetries = (wm.total_retries as number) ?? 0
-  const avgRetries = (metrics.average_retries as number) ?? 0
+function RetryTab({ metrics }: { metrics: DashboardMetrics }) {
+  const wm = metrics.workflow_metrics
+  const totalRetries = wm?.total_retries ?? 0
+  const avgRetries = metrics.average_retries ?? 0
 
   return (
     <motion.div
@@ -220,10 +220,7 @@ function RetryTab({ metrics }: { metrics: Record<string, unknown> }) {
   )
 }
 
-function ValidationTab({ validation }: { validation: Record<string, unknown> }) {
-  const labels = (validation?.labels as string[]) ?? ['Pass', 'Fail']
-  const values = (validation?.values as number[]) ?? [75, 25]
-
+function ValidationTab({ validation }: { validation: ValidationResults }) {
   return (
     <motion.div
       variants={tabContentVariants}
@@ -233,12 +230,12 @@ function ValidationTab({ validation }: { validation: Record<string, unknown> }) 
       transition={safeTransition({ duration: duration.normal })}
     >
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
-        <MetricCard label="Pass Rate" value={values[0] ?? 0} suffix="%" />
-        <MetricCard label="Fail Rate" value={values[1] ?? 0} suffix="%" />
+        <MetricCard label="Pass Rate" value={validation.values[0] ?? 0} suffix="%" />
+        <MetricCard label="Fail Rate" value={validation.values[1] ?? 0} suffix="%" />
       </div>
       <ChartCard title="Validation Results">
         <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={labels.map((l, i) => ({ name: l, value: values[i] ?? 0 }))}>
+          <BarChart data={validation.labels.map((l, i) => ({ name: l, value: validation.values[i] ?? 0 }))}>
             <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#71717a' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 12, fill: '#71717a' }} axisLine={false} tickLine={false} />
             <Tooltip
@@ -246,7 +243,7 @@ function ValidationTab({ validation }: { validation: Record<string, unknown> }) 
               itemStyle={{ color: '#fafafa' }}
             />
             <Bar dataKey="value" radius={[4, 4, 0, 0]} animationDuration={500}>
-              {labels.map((_, i) => (
+              {validation.labels.map((_, i) => (
                 <Cell key={i} fill={i === 0 ? '#22c55e' : '#ef4444'} />
               ))}
             </Bar>
@@ -257,10 +254,7 @@ function ValidationTab({ validation }: { validation: Record<string, unknown> }) 
   )
 }
 
-function ReviewTab({ review }: { review: Record<string, unknown> }) {
-  const cats = (review?.categories as string[]) ?? ['Security', 'Performance', 'Quality', 'Coverage']
-  const scores = (review?.scores as number[]) ?? [0.8, 0.75, 0.9, 0.68]
-
+function ReviewTab({ review }: { review: ReviewScores }) {
   return (
     <motion.div
       variants={tabContentVariants}
@@ -270,20 +264,20 @@ function ReviewTab({ review }: { review: Record<string, unknown> }) {
       transition={safeTransition({ duration: duration.normal })}
     >
       <StaggerGrid className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {cats.map((cat, i) => (
+        {review.categories.map((cat, i) => (
           <StaggerItem key={cat}>
             <TiltCard>
               <div className="rounded-xl border border-border bg-card p-5">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{cat}</p>
                 <p className="mt-2 font-mono text-2xl font-semibold tabular-nums">
-                  {scores[i]?.toFixed(2) ?? '—'}
+                  {review.scores[i]?.toFixed(2) ?? '—'}
                 </p>
                 <div className="mt-3 flex gap-0.5">
                   {Array.from({ length: 10 }).map((_, j) => (
                     <div
                       key={j}
                       className={`h-1.5 flex-1 rounded-full ${
-                        j < Math.round((scores[i] ?? 0) * 10) ? 'bg-foreground' : 'bg-muted'
+                        j < Math.round((review.scores[i] ?? 0) * 10) ? 'bg-foreground' : 'bg-muted'
                       }`}
                     />
                   ))}
@@ -297,10 +291,7 @@ function ReviewTab({ review }: { review: Record<string, unknown> }) {
   )
 }
 
-function PRTab({ prStats }: { prStats: Record<string, unknown> }) {
-  const labels = (prStats?.labels as string[]) ?? ['Simulated', 'Real']
-  const values = (prStats?.values as number[]) ?? [42, 8]
-
+function PRTab({ prStats }: { prStats: PRStatistics }) {
   return (
     <motion.div
       variants={tabContentVariants}
@@ -310,14 +301,14 @@ function PRTab({ prStats }: { prStats: Record<string, unknown> }) {
       transition={safeTransition({ duration: duration.normal })}
     >
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
-        <MetricCard label={labels[0] ?? 'Simulated'} value={values[0] ?? 0} />
-        <MetricCard label={labels[1] ?? 'Real'} value={values[1] ?? 0} />
+        <MetricCard label={prStats.labels[0] ?? 'Simulated'} value={prStats.values[0] ?? 0} />
+        <MetricCard label={prStats.labels[1] ?? 'Real'} value={prStats.values[1] ?? 0} />
       </div>
       <ChartCard title="PR Distribution">
         <ResponsiveContainer width="100%" height={280}>
           <PieChart>
             <Pie
-              data={labels.map((l, i) => ({ name: l, value: values[i] ?? 0 }))}
+              data={prStats.labels.map((l, i) => ({ name: l, value: prStats.values[i] ?? 0 }))}
               cx="50%"
               cy="50%"
               outerRadius={100}
@@ -346,9 +337,9 @@ export default function Dashboard() {
   const { data: summary, isLoading: summaryLoading, error: summaryError } = useDashboardSummary()
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
   const { data: repos, isLoading: reposLoading } = useDashboardRepositories()
-  const { data: review } = useChartData('review-scores')
-  const { data: validation } = useChartData('validation-results')
-  const { data: prStats } = useChartData('pr-statistics')
+  const { data: review } = useChartData<ReviewScores>('review-scores')
+  const { data: validation } = useChartData<ValidationResults>('validation-results')
+  const { data: prStats } = useChartData<PRStatistics>('pr-statistics')
 
   const loading = summaryLoading || metricsLoading || reposLoading
 
@@ -387,16 +378,16 @@ export default function Dashboard() {
               </div>
             }
           >
-            <TabNav tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+            <TabNav tabs={tabs} activeTab={activeTab} onChange={setActiveTab} aria-label="Dashboard tabs" />
 
             <div className="mt-6">
               <AnimatePresence mode="wait">
-                {activeTab === 'System Overview' && <OverviewTab key="overview" summary={summary ?? ({} as Record<string, unknown>)} />}
-                {activeTab === 'Repository Analytics' && <ReposTab key="repos" repos={repos ?? ([] as unknown[])} />}
-                {activeTab === 'Retry Analytics' && <RetryTab key="retry" metrics={metrics ?? ({} as Record<string, unknown>)} />}
-                {activeTab === 'Validation Analytics' && <ValidationTab key="validation" validation={validation ?? ({} as Record<string, unknown>)} />}
-                {activeTab === 'Review Analytics' && <ReviewTab key="review" review={review ?? ({} as Record<string, unknown>)} />}
-                {activeTab === 'PR Analytics' && <PRTab key="pr" prStats={prStats ?? ({} as Record<string, unknown>)} />}
+                {activeTab === 'System Overview' && <OverviewTab key="overview" summary={summary ?? { system_health: { total_workflow_runs: 0, overall_success_rate: 0, average_retries_per_run: 0 }, confidence: { overall_confidence: 0 } }} />}
+                {activeTab === 'Repository Analytics' && <ReposTab key="repos" repos={repos ?? []} />}
+                {activeTab === 'Retry Analytics' && <RetryTab key="retry" metrics={metrics ?? {} as DashboardMetrics} />}
+                {activeTab === 'Validation Analytics' && <ValidationTab key="validation" validation={validation ?? { labels: [], values: [] }} />}
+                {activeTab === 'Review Analytics' && <ReviewTab key="review" review={review ?? { categories: [], scores: [] }} />}
+                {activeTab === 'PR Analytics' && <PRTab key="pr" prStats={prStats ?? { labels: [], values: [] }} />}
               </AnimatePresence>
             </div>
           </AnimatedContent>

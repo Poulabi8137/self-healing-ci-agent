@@ -4,6 +4,8 @@ from app.workflows.analysis_workflow import run_analysis
 from app.parsers.log_parser import parse_logs
 from app.parsers.error_classifier import classify_error
 
+pytestmark = pytest.mark.slow
+
 
 @pytest.mark.asyncio
 class TestAnalysisWorkflow:

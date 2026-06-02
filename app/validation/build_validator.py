@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from app.config.settings import settings
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)

@@ -1,5 +1,4 @@
-import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from app.utils.logger import get_logger
 from app.llm.factory import LLMFactory
@@ -56,7 +55,6 @@ class RetryAgent:
             Improved fix proposal dict with same structure as FixAgent output.
         """
         retrieval_context = ""
-        retrieved_files: List[str] = []
 
         try:
             emb = get_embedding_service().get_embeddings()
@@ -69,9 +67,6 @@ class RetryAgent:
             )
             if results:
                 retrieval_context = retriever.format_retrieval_context(results)
-                retrieved_files = list({
-                    r["metadata"].get("file_path", "unknown") for r in results
-                })
                 logger.info(f"Retrieved {len(results)} context chunks for retry attempt {attempt_number}")
         except Exception as e:
             logger.warning(f"Retrieval failed during retry attempt {attempt_number}: {e}")

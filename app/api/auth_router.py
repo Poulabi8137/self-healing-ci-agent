@@ -1,6 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 
-from app.auth.schemas import CreateApiKeyRequest, CreateApiKeyResponse, ApiKeyInfo, ListApiKeysResponse, RevokeApiKeyResponse, MeResponse
+from app.auth.schemas import (
+    CreateApiKeyRequest,
+    CreateApiKeyResponse,
+    ApiKeyInfo,
+    ListApiKeysResponse,
+    RevokeApiKeyResponse,
+    MeResponse,
+)
 from app.auth.utils import create_api_key, list_api_keys, revoke_api_key
 from app.auth.dependencies import require_admin, get_current_user
 from app.auth.models import ApiKey

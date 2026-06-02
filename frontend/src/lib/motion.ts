@@ -38,7 +38,8 @@ export const prefersReducedMotion =
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false
 
-export const safeTransition = (t: Record<string, unknown>) =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const safeTransition = (t: Record<string, any>) =>
   prefersReducedMotion ? { duration: 0 } : t
 
 export const pageVariants = {

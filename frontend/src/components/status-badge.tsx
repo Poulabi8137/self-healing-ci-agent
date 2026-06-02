@@ -35,6 +35,8 @@ export function StatusBadge({
         'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium',
         variants[s],
       )}
+      role="status"
+      aria-label={`Status: ${labels[s]}`}
     >
       <span
         className={cn(
@@ -46,6 +48,7 @@ export function StatusBadge({
           s === 'running' && 'bg-blue-500',
           (s === 'pending' || s === 'unknown') && 'bg-muted-foreground',
         )}
+        aria-hidden="true"
       />
       {labels[s]}
     </span>

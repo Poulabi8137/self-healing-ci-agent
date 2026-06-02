@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-from app.config.settings import settings
 from app.rag.chunking import chunk_file
 from app.rag.retriever import RetrieverService
 from app.rag.repo_loader import scan_repository_files

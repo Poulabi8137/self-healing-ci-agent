@@ -19,7 +19,6 @@ from app.api.dashboard_router import router as dashboard_router
 from app.api.tasks_router import router as tasks_router
 from app.config.settings import settings
 from app.database.db import init_db
-from app.auth.utils import create_api_key
 from app.queue.worker import start_worker, stop_worker
 import app.queue.handlers  # register task handlers
 from app.utils.logger import get_logger

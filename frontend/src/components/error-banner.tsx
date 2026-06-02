@@ -13,7 +13,7 @@ export function ErrorBanner({
   const [showDetails, setShowDetails] = useState(false)
 
   return (
-    <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+    <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4" role="alert">
       <div className="flex items-start gap-3">
         <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
         <div className="flex-1">

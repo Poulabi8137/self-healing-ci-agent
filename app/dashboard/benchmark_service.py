@@ -1,7 +1,6 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from app.dashboard.analytics_engine import compute_full_analytics
-from app.dashboard.metrics_collector import collect_workflow_metrics, collect_repository_metrics
 from app.database.db import SessionLocal
 from app.utils.logger import get_logger
 
