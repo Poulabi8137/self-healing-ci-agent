@@ -82,18 +82,21 @@ export function SelfHealingDemo({ onComplete, autoPlay = false, className = '' }
 
   useEffect(() => {
     if (!autoPlay) return
-    startReplay()
-    return clearTimers
+    const t = setTimeout(startReplay, 0)
+    return () => { clearTimeout(t); clearTimers() }
   }, [autoPlay, startReplay, clearTimers])
 
   useEffect(() => {
     if (currentStep < 0 || currentStep >= steps.length) return
 
-    setSteps(prev => prev.map((s, i) =>
-      i === currentStep ? { ...s, status: 'active' as const } : s
-    ))
+    const t0 = setTimeout(() => {
+      setSteps(prev => prev.map((s, i) =>
+        i === currentStep ? { ...s, status: 'active' as const } : s
+      ))
+    }, 0)
+    timersRef.current.push(t0)
 
-    const step = steps[currentStep]
+    const step = replaySteps[currentStep]
     const isFixStep = step.id === 'fix'
 
     const t = setTimeout(() => {
