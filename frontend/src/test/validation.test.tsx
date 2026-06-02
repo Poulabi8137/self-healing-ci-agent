@@ -21,7 +21,7 @@ function renderValidation() {
 describe('ValidationPage', () => {
   it('renders the heading', () => {
     renderValidation()
-    expect(screen.getByText('Validation')).toBeInTheDocument()
+    expect(screen.getByText('Fix Validation')).toBeInTheDocument()
   })
 
   it('renders the form with repo and logs inputs', () => {
@@ -32,7 +32,7 @@ describe('ValidationPage', () => {
 
   it('shows empty state before validation', () => {
     renderValidation()
-    expect(screen.getByText('Validation results will appear here')).toBeInTheDocument()
+    expect(screen.getByText('Submit logs to validate a generated fix')).toBeInTheDocument()
   })
 
   it('has a form role with correct label', () => {

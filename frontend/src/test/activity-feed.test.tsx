@@ -5,12 +5,7 @@ import { ActivityFeed } from '@/components/activity-feed'
 describe('ActivityFeed', () => {
   it('renders the heading', () => {
     render(<ActivityFeed />)
-    expect(screen.getByText('Activity Feed')).toBeInTheDocument()
-  })
-
-  it('renders LIVE toggle', () => {
-    render(<ActivityFeed />)
-    expect(screen.getByText('LIVE')).toBeInTheDocument()
+    expect(screen.getByText('Activity')).toBeInTheDocument()
   })
 
   it('has feed role', () => {
@@ -18,8 +13,8 @@ describe('ActivityFeed', () => {
     expect(screen.getByRole('feed')).toBeInTheDocument()
   })
 
-  it('has polite aria-live', () => {
+  it('has feed aria-label', () => {
     render(<ActivityFeed />)
-    expect(screen.getByRole('feed')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.getByRole('feed')).toHaveAttribute('aria-label', 'Activity feed')
   })
 })

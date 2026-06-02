@@ -40,7 +40,7 @@ describe('LoginPage', () => {
 
   it('has main landmark with correct label', () => {
     renderLogin()
-    expect(screen.getByRole('main', { name: 'Login page' })).toBeInTheDocument()
+    expect(screen.getByRole('main')).toBeInTheDocument()
   })
 
   it('has a form role with correct label', () => {

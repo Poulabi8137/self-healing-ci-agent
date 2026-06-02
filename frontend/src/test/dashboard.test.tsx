@@ -25,16 +25,16 @@ function renderDashboard() {
 describe('Dashboard page', () => {
   it('renders the heading', () => {
     renderDashboard()
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Overview' })).toBeInTheDocument()
   })
 
   it('renders dashboard tabs', () => {
     renderDashboard()
-    expect(screen.getByText('System Overview')).toBeInTheDocument()
-    expect(screen.getByText('Repository Analytics')).toBeInTheDocument()
-    expect(screen.getByText('Retry Analytics')).toBeInTheDocument()
-    expect(screen.getByText('Validation Analytics')).toBeInTheDocument()
-    expect(screen.getByText('Review Analytics')).toBeInTheDocument()
-    expect(screen.getByText('PR Analytics')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Repositories' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Recovery' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Validation' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Health' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Pull Requests' })).toBeInTheDocument()
   })
 })

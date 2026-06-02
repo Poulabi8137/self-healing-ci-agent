@@ -21,7 +21,7 @@ function renderAnalysis() {
 describe('AnalysisPage', () => {
   it('renders the heading', () => {
     renderAnalysis()
-    expect(screen.getByText('Analysis')).toBeInTheDocument()
+    expect(screen.getByText('Failure Analysis')).toBeInTheDocument()
   })
 
   it('renders the form with repo and logs inputs', () => {

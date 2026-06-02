@@ -21,17 +21,17 @@ function renderLanding() {
 describe('LandingPage', () => {
   it('renders the hero heading', () => {
     renderLanding()
-    expect(screen.getByText(/Autonomous CI\/CD/)).toBeInTheDocument()
+    expect(screen.getByText(/Your CI failed/)).toBeInTheDocument()
   })
 
   it('renders hero description', () => {
     renderLanding()
-    expect(screen.getByText(/intelligent agent that analyzes/)).toBeInTheDocument()
+    expect(screen.getByText(/An agent that monitors/)).toBeInTheDocument()
   })
 
   it('renders Get Started button', () => {
     renderLanding()
-    expect(screen.getByText('Get Started')).toBeInTheDocument()
+    expect(screen.getByText('See it in action')).toBeInTheDocument()
   })
 
   it('renders Sign In button', () => {
@@ -46,9 +46,9 @@ describe('LandingPage', () => {
 
   it('renders three feature cards', () => {
     renderLanding()
+    expect(screen.getByText('Detect')).toBeInTheDocument()
     expect(screen.getByText('Analyze')).toBeInTheDocument()
     expect(screen.getByText('Fix')).toBeInTheDocument()
-    expect(screen.getByText('Deploy')).toBeInTheDocument()
   })
 
   it('has banner landmark', () => {
