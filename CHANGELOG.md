@@ -9,12 +9,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+- Multi-language validation support (JavaScript, Go, Rust, Java)
+- Webhook-based CI integration (GitHub Actions, GitLab CI, Jenkins)
+- Slack/Teams notification channels
+- PostgreSQL production database support
+- Kubernetes Helm chart deployment manifests
+
+---
+
+## [1.0.0] — 2026-06-02
+
 ### Added
-- Multi-language validation support (JavaScript, Go, Rust, Java) — *planned*
-- Webhook-based CI integration (GitHub Actions, GitLab CI, Jenkins) — *planned*
-- Slack/Teams notification channels — *planned*
-- PostgreSQL production database support — *planned*
-- Kubernetes Helm chart deployment manifests — *planned*
+
+#### Frontend: React SPA (11 pages)
+- React 19 + TypeScript 6 + Vite 8 + Tailwind CSS v4 production build
+- 9 code-split lazy routes (440 KB main chunk, parallel-loadable)
+- Framer Motion animations: spring transitions, stagger grids, AnimatePresence page transitions
+- Recharts visualizations: radar, area, bar, line, pie/donut, scatter, treemap charts
+- Animated SVG ring meters with stroke-dasharray animation
+- Animated counters with spring physics
+- SpotlightCard and TiltCard interactive components
+- Command palette (Ctrl+K) with keyboard-driven navigation
+- WCAG AA accessibility: 60+ ARIA attributes, focus traps, keyboard shortcuts (G+letter navigation)
+- Error boundaries with toast notifications (sonner)
+- Real-time API polling (10s tasks, 30s dashboard) via TanStack React Query
+
+#### Pages
+- **Landing** — Parallax hero, feature cards with stagger-in animation, animated CTA
+- **Login** — API key authentication with auto-redirect and form validation
+- **Dashboard** — 6-tab navigation, 4 metric cards, success/failure bar chart, activity trend area chart, activity feed sidebar, skeleton loaders
+- **Analysis** — Form + results split pane, code block display, assumptions list, error classification
+- **Validation** — 3 validation category cards (syntax, build, test) with overall status
+- **Retry** — Interactive expandable timeline, donut chart, failure reason breakdown, metric cards
+- **Review** — Radar chart, animated ring meter (92%), score distribution bar chart, multi-line trend chart, recent reviews list
+- **Pull Request** — Form with dry-run toggle, file changes list (A/M/D indicators), branch details
+- **Indexing** — Repository indexing form, 4-card metric strip, recent indexes list
+- **Tasks** — Real task polling (10s), expandable task cards, animated progress bars, metric cards
+- **Admin Keys** — Full CRUD (create/delete), role assignment dropdown, copy-to-clipboard, role-colored icons
+
+#### Backend Enhancements
+- Groq LLM provider support (deepseek-r1-distill-llama-70b)
+- Additional LLM provider abstraction layer
+- Enhanced error classification categories
+
+#### Testing
+- 60 frontend tests (Vitest + React Testing Library + @testing-library/user-event)
+- 15 frontend test files covering all 11 pages, shared components, hooks, auth
+- Accessibility tests for ARIA attributes and keyboard navigation
+
+#### Documentation & Repository
+- Full ARCHITECTURE.md with Mermaid component tree, frontend/backend diagrams, request flow
+- GitHub issue templates (bug report, feature request)
+- GitHub pull request template
+- SECURITY.md with vulnerability reporting policy
+- CODE_OF_CONDUCT.md (Contributor Covenant v2.1)
+- .gitattributes for cross-platform line endings
+- README hero screenshot, badges, feature grid, quick start, demo section
+
+### Security
+
+- SessionStorage for auth tokens (no localStorage)
+- Role icons and visual role indicators on admin keys page
+- Form validation on all user inputs
+
+### Performance
+
+- Code-split routing: 9 lazy-loaded chunks loaded on demand
+- React Query stale-while-revalidate with 30s staleTime
+- Parallel data fetching on dashboard (Promise.all for 4 chart endpoints)
+- Optimized bundle with vite build (tree-shaking, minification, CSS extraction)
 
 ---
 

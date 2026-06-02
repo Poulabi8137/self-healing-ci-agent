@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, BookOpen, HardDrive, Search, Activity } from 'lucide-react'
+import { Database, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTransition } from '@/components/page-transition'
-import { StaggerGrid, StaggerItem } from '@/components/stagger-grid'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { StatusBadge } from '@/components/status-badge'
-import { EmptyState } from '@/components/empty-state'
 import { useTriggerIndex } from '@/lib/api'
 
 export default function Indexing() {
@@ -35,49 +33,18 @@ export default function Indexing() {
     }
   }
 
-  const metrics = [
-    { label: 'Chunks Indexed', value: 2847, icon: BookOpen },
-    { label: 'Vector Dimensions', value: 1536, icon: HardDrive },
-    { label: 'Avg Retrieval Score', value: 0.87, decimals: 2, icon: Search },
-    { label: 'Index Size', value: 42, suffix: ' MB', icon: Database },
-  ]
-
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Repository Indexing</h1>
-            <p className="text-sm text-muted-foreground">Index repositories for RAG context</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Activity className="h-3.5 w-3.5 text-emerald-500" />
-            <span>{result ? 'Indexing active' : 'Ready'}</span>
-          </div>
+        <div>
+          <h1 className="text-2xl font-semibold">Repositories</h1>
+          <p className="text-sm text-muted-foreground">Connect repositories for the agent to monitor and analyze</p>
         </div>
-
-        <StaggerGrid className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {metrics.map((m) => (
-            <StaggerItem key={m.label}>
-              <TiltCard>
-                <SpotlightCard className="p-5">
-                  <div className="mb-2 flex items-center gap-2">
-                    <m.icon className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{m.label}</p>
-                  </div>
-                  <p className="font-mono text-2xl font-semibold tabular-nums">
-                    {m.decimals ? m.value.toFixed(m.decimals) : m.value}{m.suffix ?? ''}
-                  </p>
-                </SpotlightCard>
-              </TiltCard>
-            </StaggerItem>
-          ))}
-        </StaggerGrid>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
           <SpotlightCard className="p-6">
-            <h2 className="mb-4 text-sm font-medium text-muted-foreground">Index Repository</h2>
-            <div className="space-y-4" role="form" aria-label="Index repository form">
+            <h2 className="mb-4 text-sm font-medium text-muted-foreground">Connect Repository</h2>
+            <div className="space-y-4" role="form" aria-label="Add repository form">
               <div>
                 <label htmlFor="index-url" className="mb-1.5 block text-xs font-medium text-muted-foreground">GitHub URL</label>
                 <input
@@ -108,10 +75,10 @@ export default function Indexing() {
                 {mutation.isPending ? (
                   <>
                     <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-current border-t-transparent" />
-                    Indexing...
+                    Connecting...
                   </>
                 ) : (
-                  <><Database className="h-4 w-4" /> Start Indexing</>
+                  <><Database className="h-4 w-4" /> Connect Repository</>
                 )}
               </motion.button>
             </div>
@@ -130,7 +97,7 @@ export default function Indexing() {
                   <SpotlightCard className="p-5">
                     <div className="mb-3 flex items-center gap-2">
                       <Database className="h-4 w-4 text-emerald-500" />
-                      <h3 className="text-sm font-medium">Index Status</h3>
+                      <h3 className="text-sm font-medium">Connection Status</h3>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
@@ -150,27 +117,6 @@ export default function Indexing() {
                     </div>
                   </SpotlightCard>
                 </TiltCard>
-
-                <TiltCard>
-                  <SpotlightCard className="p-5">
-                    <h3 className="mb-3 text-sm font-medium">Recent Indexes</h3>
-                    <div className="space-y-2">
-                      {[
-                        { repo: 'frontend-app', chunks: 1240, time: '2h ago', status: 'completed' as const },
-                        { repo: 'api-service', chunks: 890, time: '5h ago', status: 'completed' as const },
-                        { repo: 'infra-modules', chunks: 712, time: '1d ago', status: 'completed' as const },
-                      ].map((idx) => (
-                        <div key={idx.repo} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-muted/50">
-                          <div>
-                            <p className="text-sm font-medium">{idx.repo}</p>
-                            <p className="text-[10px] text-muted-foreground">{idx.chunks} chunks · {idx.time}</p>
-                          </div>
-                          <StatusBadge status={idx.status} animated={false} />
-                        </div>
-                      ))}
-                    </div>
-                  </SpotlightCard>
-                </TiltCard>
               </motion.div>
             ) : (
               <motion.div
@@ -180,11 +126,13 @@ export default function Indexing() {
                 exit={{ opacity: 0 }}
                 className="flex h-full min-h-[300px] items-center justify-center rounded-xl border border-border bg-card"
               >
-                <EmptyState
-                  icon={BookOpen}
-                  title="No repositories indexed"
-                  description="Submit a repository URL to start indexing."
-                />
+                <div className="text-center">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                    <BookOpen className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">No repositories connected</p>
+                  <p className="text-xs text-muted-foreground mt-1">Add a repository URL to start monitoring</p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

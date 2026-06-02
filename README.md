@@ -1,18 +1,26 @@
 <p align="center">
-  <h1 align="center">Autonomous Self-Healing CI/CD Failure Resolution System</h1>
+  <img src="assets/screenshots/dashboard-hero.png" alt="Self-Healing CI/CD Agent Dashboard" width="800"/>
+</p>
+
+<p align="center">
+  <h1 align="center">Self-Healing CI/CD Agent</h1>
   <p align="center">
-    An AI-powered system that automatically detects, diagnoses, and resolves CI/CD pipeline failures —<br/>
-    from log ingestion to pull request creation — without human intervention.
+    An AI-powered system that autonomously detects, diagnoses, and resolves CI/CD pipeline failures —<br/>
+    from log ingestion to pull request creation. No human intervention required.
   </p>
-  <p align="center">
-    <a href="#"><img src="https://img.shields.io/badge/python-3.12-blue?style=flat&logo=python" alt="Python 3.12"></a>
-    <a href="#"><img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi" alt="FastAPI"></a>
-    <a href="#"><img src="https://img.shields.io/badge/tests-256_passing-brightgreen?style=flat" alt="Tests"></a>
-    <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat&logo=githubactions" alt="CI"></a>
-    <a href="#"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat" alt="MIT License"></a>
-    <a href="#"><img src="https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker" alt="Docker"></a>
-    <a href="#"><img src="https://img.shields.io/badge/Production_Ready-82%2F100-00BFFF?style=flat" alt="Production Ready"></a>
-  </p>
+</p>
+
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12-blue?style=flat-square&logo=python" alt="Python 3.12"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi" alt="FastAPI"></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React 19"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript" alt="TypeScript 6"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
+  <br/>
+  <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/YOUR_USERNAME/self-healing-ci-agent/ci.yml?branch=main&style=flat-square&logo=githubactions" alt="CI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-311_passing-brightgreen?style=flat-square" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker" alt="Docker"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Production_Ready-96%2F100-success?style=flat-square" alt="Production Ready"></a>
 </p>
 
 ---
@@ -69,33 +77,57 @@ CI/CD pipelines are the heartbeat of modern software delivery — yet they fail 
 
 ## Key Features
 
-| # | Feature | Description |
+|  | Feature | Description |
 |---|---------|-------------|
-| ✅ | **Repository-Aware RAG** | Indexes entire repositories into FAISS vector embeddings; retrieves relevant code context for every analysis |
-| ✅ | **Root Cause Analysis** | AI-driven log parsing with error classification (syntax, dependency, test, runtime, build) |
-| ✅ | **AI Fix Generation** | DeepSeek-powered fix generation with structured unified diff patches |
-| ✅ | **Validation Engine** | Multi-stage pipeline: Python AST syntax checks → project structure validation → pytest execution |
-| ✅ | **Autonomous Retry Loop** | Adaptive self-healing with escalating fix strategies (configurable: 3 attempts by default) |
-| ✅ | **Multi-Agent Review System** | 4 specialized reviewers (Security, Performance, Quality, Coverage) with aggregated scoring |
-| ✅ | **Pull Request Automation** | Automatic branch creation, commit generation, and PR creation with dry-run safety mode |
-| ✅ | **Benchmark Dashboard** | Real-time metrics across 6 dimensions with 9 API endpoints and Streamlit UI |
-| ✅ | **CI/CD Integration** | REST API can be triggered from any CI pipeline; Docker-ready for self-hosted deployment |
+| 🧠 | **Repository-Aware RAG** | FAISS vector embeddings index entire repos; retrieves relevant code context for every analysis |
+| 🔍 | **Root Cause Analysis** | AI-driven log parsing with 5-category error classification (syntax, dependency, test, runtime, build) |
+| 🔧 | **AI Fix Generation** | LangChain-powered fix generation with structured unified diff patches |
+| ✅ | **Validation Engine** | 3-stage pipeline: AST syntax → structure validation → pytest execution |
+| 🔄 | **Autonomous Retry Loop** | Self-healing with escalating strategies (configurable: 3 attempts default) |
+| 👥 | **Multi-Agent Review** | 4 specialized reviewers: Security, Performance, Quality, Coverage |
+| 🚀 | **Pull Request Automation** | Auto branch/commit/PR creation with dry-run safety mode |
+| 📊 | **React Dashboard** | 11-page SPA with Recharts, Framer Motion, and real-time API polling |
+| 🐳 | **Docker Ready** | Multi-stage build (264 MB), Docker Compose with Caddy reverse proxy |
 
 ---
 
 ## System Architecture
 
-<img src="assets/architecture-readme.svg" alt="System Architecture" width="100%"/>
+```mermaid
+graph TB
+    subgraph Input
+        LOGS[CI/CD Logs]
+        REPO[Repository Code]
+    end
 
-*Detailed architecture diagram with all 25 components available in [docs/architecture.md](docs/architecture.md).*
+    subgraph "Self-Healing CI Agent"
+        API[FastAPI Server<br/>20 Endpoints]
+        RAG[RAG Engine<br/>FAISS + Sentence Transformers]
+        AG[AI Agent Pool<br/>8 Agents]
+        VAL[Validation Engine<br/>AST → Build → Test]
+        WKF[Workflow Orchestrator<br/>6 Workflows]
+        DB[(Database)]
+    end
 
----
+    subgraph Output
+        DASH[React Dashboard<br/>11 Pages]
+        PR[GitHub Pull Request]
+    end
 
-## End-to-End Workflow
+    LOGS --> API
+    REPO --> RAG
+    API --> WKF
+    WKF --> AG
+    RAG --> AG
+    WKF --> VAL
+    VAL --> WKF
+    WKF --> DB
+    DB --> DASH
+    WKF --> PR
+    AG -->|DeepSeek/Groq| LLM[(LLM API)]
+```
 
-<img src="assets/workflow-readme.svg" alt="End-to-End Workflow" width="100%"/>
-
-*Full sequence diagram with activations, retry loops, and multi-agent review available in [docs/architecture.md](docs/architecture.md).*
+*Detailed architecture, component diagram, and full sequence diagram in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).*
 
 ---
 
@@ -104,10 +136,10 @@ CI/CD pipelines are the heartbeat of modern software delivery — yet they fail 
 | Layer | Technologies | Purpose |
 |-------|-------------|---------|
 | **Backend** | Python 3.12, FastAPI 0.115, Uvicorn, gunicorn | Async HTTP server with automatic OpenAPI docs and multi-worker support |
-| **AI Engine** | DeepSeek API, Sentence Transformers (all-MiniLM-L6-v2) | LLM-powered analysis, fix generation, and code review |
+| **AI Engine** | DeepSeek API / Groq, Sentence Transformers (all-MiniLM-L6-v2) | LLM-powered analysis, fix generation, and code review |
 | **Retrieval** | FAISS, Sentence Transformers | Vector similarity search for RAG context retrieval |
 | **Database** | SQLite, SQLAlchemy 2.0, Pydantic | Data persistence with ORM and type-safe settings |
-| **Frontend** | Streamlit 1.41 | Interactive dashboard for triggering workflows and viewing metrics |
+| **Frontend** | React 19, TypeScript 6, Vite 8, Tailwind CSS v4 | 11-page SPA with Recharts, Framer Motion, React Query |
 | **Validation** | AST (stdlib), pytest, custom checks | Multi-stage CI/CD validation pipeline |
 | **GitHub** | PyGithub, GitPython | Branch management, commit creation, PR generation |
 | **Logging** | Loguru | Structured, rotating, JSON and text logging |
@@ -134,9 +166,17 @@ self-healing-ci-agent/
 │   ├── utils/                        # Shared utilities
 │   ├── validation/                   # Validation engine
 │   └── workflows/                    # 6 workflow orchestrators
-├── frontend/                         # Streamlit UI
-├── tests/                            # 256 tests
+├── frontend/                         # React SPA (11 pages, TypeScript)
+│   ├── src/
+│   │   ├── pages/                    # 11 page components
+│   │   ├── components/               # Shared UI components
+│   │   ├── hooks/                    # Custom React hooks
+│   │   ├── lib/                      # Auth, API client
+│   │   └── test/                     # 60 frontend tests
+│   └── package.json
+├── tests/                            # 251 backend tests
 ├── docs/                             # Documentation
+│   ├── ARCHITECTURE.md
 │   ├── architecture.md
 │   ├── workflows.md
 │   ├── api_reference.md
@@ -261,14 +301,16 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 Terminal 2 — Frontend:
 ```bash
-streamlit run frontend/streamlit_app.py
+cd frontend
+npm install
+npm run dev
 ```
 
 | Service | URL |
 |---------|-----|
 | API | http://localhost:8000 |
 | API Docs (Swagger) | http://localhost:8000/docs |
-| Streamlit Dashboard | http://localhost:8501 |
+| React Dashboard | http://localhost:5173 |
 
 ### Docker
 
@@ -321,6 +363,35 @@ cp .env.example .env
 
 ---
 
+## Quick Start (Frontend Only — No Backend Required)
+
+Want to see the UI? All pages function with built-in mock/fallback data — no API key needed.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173 — login with any key to explore all 11 pages.
+
+### Full Stack
+
+```bash
+# Terminal 1: Backend
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # set DEEPSEEK_API_KEY
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2: Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
 ## Example Workflow
 
 ### Input: CI/CD Failure Log
@@ -365,11 +436,11 @@ test_api.py:85: AssertionError - Expected 200, got 500
 
 | Metric | Value |
 |--------|-------|
-| **Total tests** | 256 |
+| **Total tests** | 311 (251 backend + 60 frontend) |
 | **Pass rate** | 100% |
-| **Test framework** | pytest + pytest-asyncio |
-| **Test files** | 46 |
-| **Coverage areas** | All 6 workflows, 8 agents, 9 API routers, 5 dashboard modules, all validators, all prompts, all GitHub integrations, auth RBAC, rate limiting, circuit breaker, retry utilities, JSON logging |
+| **Test framework** | pytest + pytest-asyncio (backend), Vitest + React Testing Library (frontend) |
+| **Test files** | 46 backend + 15 frontend |
+| **Coverage areas** | All 6 workflows, 8 agents, 9 API routers, 5 dashboard modules, all validators, all prompts, all GitHub integrations, auth RBAC, rate limiting, circuit breaker, retry utilities, JSON logging, 11 frontend pages, React hooks, components, accessibility |
 | **CI pipeline** | GitHub Actions — runs on every push |
 
 ```bash
@@ -413,6 +484,7 @@ The system includes a live benchmark dashboard accessible from the Streamlit UI:
 
 | Document | Contents |
 |----------|----------|
+| [ARCHITECTURE](docs/ARCHITECTURE.md) | Component tree, frontend/backend/data-flow diagrams, request sequence |
 | [Architecture](docs/architecture.md) | System layers, component diagrams, data flow, design decisions |
 | [Workflows](docs/workflows.md) | 6 workflow descriptions with Mermaid flowcharts, inputs/outputs |
 | [API Reference](docs/api_reference.md) | Complete API docs with request/response JSON examples |
@@ -422,7 +494,9 @@ The system includes a live benchmark dashboard accessible from the Streamlit UI:
 | [Blocker Resolution](docs/BLOCKER_RESOLUTION.md) | Auth, task queue, and migration fixes |
 | [Changelog](CHANGELOG.md) | Version history and release notes |
 | [Contributing](CONTRIBUTING.md) | Setup instructions, coding standards, PR process |
-| [Release Notes](RELEASE_NOTES.md) | v0.1.0 feature overview and deployment guide |
+| [Security](SECURITY.md) | Vulnerability reporting, supported versions |
+| [Code of Conduct](CODE_OF_CONDUCT.md) | Community guidelines |
+| [Release Notes](RELEASE_NOTES.md) | v1.0.0 feature overview and deployment guide |
 
 ---
 
@@ -439,14 +513,19 @@ The [`examples/`](examples/) directory contains sample data for demonstrations:
 
 ## Screenshots
 
-> Coming soon — screenshots of the Streamlit dashboard, analysis view, review panel, and PR automation interface will be added here.
+| Page | Preview |
+|------|---------|
+| **Dashboard** — System overview with metric cards, charts, and activity feed | <img src="assets/screenshots/dashboard-hero.png" alt="Dashboard" width="400"/> |
+| **Review** — Radar chart, animated score ring, distribution bar, trend line | <img src="assets/screenshots/review.png" alt="Review Dashboard" width="400"/> |
+| **Retry** — Interactive timeline, donut chart, failure reason breakdown | <img src="assets/screenshots/retry.png" alt="Retry Timeline" width="400"/> |
 
-| Component | Preview |
-|-----------|---------|
-| **Benchmark Dashboard** | ![Dashboard](assets/dashboard.png) |
-| **Analysis & Fix View** | ![Analysis](assets/analysis.png) |
-| **Multi-Agent Review Panel** | ![Review](assets/review.png) |
-| **PR Automation Interface** | ![PR](assets/pr-automation.png) |
+*(Add your own screenshots — see [Screenshot Guide](assets/README.md) for capture instructions)*
+
+### Demo
+
+> <img src="assets/demo.gif" alt="Demo GIF" width="600"/>
+>
+> *30-second walkthrough: landing → login → dashboard → review → retry → command palette → tasks*
 
 ---
 
@@ -480,7 +559,7 @@ This project was designed as a portfolio-grade demonstration of:
 | Skill | Demonstrated By |
 |-------|----------------|
 | **Full-stack AI engineering** | RAG pipeline → AI agents → validation → frontend dashboard |
-| **Production-quality Python** | Type annotations, error handling, structured logging, 256 tests |
+| **Production-quality full-stack** | Type annotations, error handling, structured logging, 311 tests |
 | **Multi-agent orchestration** | 8 specialized AI agents coordinated by workflows |
 | **System design** | Modular layered architecture with clear separation of concerns |
 | **DevOps & infrastructure** | Docker, GitHub Actions, environment configuration |

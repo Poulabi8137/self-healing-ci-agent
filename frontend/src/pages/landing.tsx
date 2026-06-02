@@ -91,7 +91,7 @@ export default function Landing() {
               className="h-1.5 w-1.5 rounded-full bg-emerald-500"
               aria-hidden="true"
             />
-            Self-Healing CI/CD Agent v0.1.0
+            Automatically fixing CI failures
           </motion.div>
 
           <motion.h1
@@ -100,8 +100,8 @@ export default function Landing() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="text-5xl font-bold tracking-tight sm:text-6xl"
           >
-            Autonomous CI/CD{' '}
-            <span className="text-muted-foreground">Failure Resolution</span>
+            Your CI failed.<br />
+            <span className="text-muted-foreground">The agent already fixed it.</span>
           </motion.h1>
 
           <motion.p
@@ -110,8 +110,9 @@ export default function Landing() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mt-6 text-lg leading-relaxed text-muted-foreground"
           >
-            An intelligent agent that analyzes build failures, generates fixes,
-            validates patches, and creates pull requests — automatically.
+            An agent that monitors your CI/CD pipelines, detects failures,
+            analyzes root causes, generates fixes, and creates pull requests
+            &mdash; without human intervention.
           </motion.p>
 
           <motion.div
@@ -128,7 +129,7 @@ export default function Landing() {
               className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90"
               aria-label="Get started with the application"
             >
-              Get Started
+              See it in action
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}
@@ -137,7 +138,7 @@ export default function Landing() {
               onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
               className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
             >
-              Learn More
+              How it works
             </motion.button>
           </motion.div>
         </motion.div>
@@ -149,9 +150,9 @@ export default function Landing() {
           className="mt-20 grid w-full max-w-5xl gap-6 sm:grid-cols-3"
         >
           {[
-            { title: 'Analyze', desc: 'Deep analysis with RAG-grounded context retrieval' },
-            { title: 'Fix', desc: 'AI-powered fix generation with multi-agent review' },
-            { title: 'Deploy', desc: 'Automated PR creation with validation pipeline' },
+            { title: 'Detect', desc: 'Monitors CI/CD pipelines in real-time, identifies test failures and build errors automatically' },
+            { title: 'Analyze', desc: 'Extracts root causes from logs, stack traces, and git history to understand what broke' },
+            { title: 'Fix', desc: 'Generates patches, validates them against the full test suite, and opens pull requests' },
           ].map((item) => (
             <motion.div
               key={item.title}
@@ -177,7 +178,7 @@ export default function Landing() {
         className="border-t border-border px-6 py-8 text-center text-sm text-muted-foreground"
         role="contentinfo"
       >
-        Self-Healing AI CI/CD Agent &mdash; Built with FastAPI, React &amp; Groq
+        Self-Healing CI/CD Agent &mdash; Fixes failures before you notice them.
       </motion.footer>
     </div>
   )

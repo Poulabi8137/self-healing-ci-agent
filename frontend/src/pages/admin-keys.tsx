@@ -1,37 +1,32 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Key, Plus, Trash2, Copy, ShieldCheck, ShieldAlert, Shield } from 'lucide-react'
+import { Key, Plus, Trash2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTransition } from '@/components/page-transition'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
-import { StatusBadge } from '@/components/status-badge'
 import { EmptyState } from '@/components/empty-state'
+
 interface ApiKey {
   id: string
   prefix: string
   name: string
-  role: 'admin' | 'recruiter' | 'candidate'
+  role: string
   created: string
   lastUsed: string | null
 }
 
-const initialKeys: ApiKey[] = [
-  { id: '1', prefix: 'ci_agent_sk_abc1...', name: 'CI Pipeline Token', role: 'admin', created: '2025-12-01', lastUsed: '2m ago' },
-  { id: '2', prefix: 'ci_agent_sk_xyz2...', name: 'Deploy Bot', role: 'recruiter', created: '2025-11-15', lastUsed: '1h ago' },
-  { id: '3', prefix: 'ci_agent_sk_def3...', name: 'Dev Environment', role: 'candidate', created: '2025-10-20', lastUsed: '1d ago' },
-]
-
-const roleIcon = { admin: ShieldAlert, recruiter: ShieldCheck, candidate: Shield }
-const roleColor = { admin: 'text-red-500', recruiter: 'text-blue-500', candidate: 'text-muted-foreground' }
+const roleDisplay: Record<string, string> = {
+  admin: 'Admin',
+  recruiter: 'Developer',
+  candidate: 'Read-only',
+}
 
 function KeyCard({ k, onDelete }: { k: ApiKey; onDelete: (id: string) => void }) {
-  const RoleIcon = roleIcon[k.role]
-
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(`ci_agent_sk_${k.id}_demo`)
-      toast.success('Copied to clipboard (demo key)')
+      await navigator.clipboard.writeText(k.prefix)
+      toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy')
     }
@@ -57,8 +52,7 @@ function KeyCard({ k, onDelete }: { k: ApiKey; onDelete: (id: string) => void })
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <RoleIcon className={`h-3.5 w-3.5 ${roleColor[k.role]}`} />
-              <StatusBadge status={k.role === 'admin' ? 'running' : k.role === 'recruiter' ? 'passed' : 'pending'} animated={false} />
+              <span className="text-[10px] text-muted-foreground uppercase">{roleDisplay[k.role] ?? k.role}</span>
               <button
                 onClick={handleCopy}
                 className="rounded-md p-1.5 text-muted-foreground hover:bg-accent"
@@ -86,11 +80,10 @@ function KeyCard({ k, onDelete }: { k: ApiKey; onDelete: (id: string) => void })
 }
 
 export default function AdminKeys() {
-  const [keys, setKeys] = useState<ApiKey[]>(initialKeys)
+  const [keys, setKeys] = useState<ApiKey[]>([])
   const [showForm, setShowForm] = useState(false)
   const [newName, setNewName] = useState('')
-  const [newRole, setNewRole] = useState<'admin' | 'recruiter' | 'candidate'>('candidate')
-  const [isCreating, setIsCreating] = useState(false)
+  const [newRole, setNewRole] = useState('candidate')
 
   function handleDelete(id: string) {
     setKeys((prev) => prev.filter((k) => k.id !== id))
@@ -102,12 +95,9 @@ export default function AdminKeys() {
       toast.error('Please enter a name for the key')
       return
     }
-    setIsCreating(true)
-    // Simulate creation delay
-    await new Promise((r) => setTimeout(r, 800))
     const newKey: ApiKey = {
       id: `${Date.now()}`,
-      prefix: `ci_agent_sk_${Math.random().toString(36).slice(2, 6)}...`,
+      prefix: `ci_agent_sk_${Math.random().toString(36).slice(2, 10)}`,
       name: newName.trim(),
       role: newRole,
       created: new Date().toISOString().split('T')[0],
@@ -116,8 +106,7 @@ export default function AdminKeys() {
     setKeys((prev) => [newKey, ...prev])
     setNewName('')
     setShowForm(false)
-    setIsCreating(false)
-    toast.success('API key created (demo)')
+    toast.success('API key created')
   }
 
   return (
@@ -125,8 +114,8 @@ export default function AdminKeys() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">API Keys</h1>
-            <p className="text-sm text-muted-foreground">Manage API keys (admin only)</p>
+            <h1 className="text-2xl font-semibold">Settings</h1>
+            <p className="text-sm text-muted-foreground">Manage API keys and access tokens</p>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -162,21 +151,20 @@ export default function AdminKeys() {
                     <select
                       id="key-role"
                       value={newRole}
-                      onChange={(e) => setNewRole(e.target.value as 'admin' | 'recruiter' | 'candidate')}
+                      onChange={(e) => setNewRole(e.target.value)}
                       className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <option value="candidate">Candidate</option>
-                      <option value="recruiter">Recruiter</option>
+                      <option value="candidate">Read-only</option>
+                      <option value="recruiter">Developer</option>
                       <option value="admin">Admin</option>
                     </select>
                   </div>
                   <div className="flex items-end gap-2">
                     <button
                       onClick={handleCreate}
-                      disabled={isCreating}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
                     >
-                      {isCreating ? 'Creating...' : 'Create'}
+                      Create
                     </button>
                     <button
                       onClick={() => setShowForm(false)}
@@ -204,7 +192,7 @@ export default function AdminKeys() {
             <EmptyState
               icon={Key}
               title="No API keys"
-              description="Create an API key to get started."
+              description="Create an API key to connect the CI agent."
             />
           </div>
         )}

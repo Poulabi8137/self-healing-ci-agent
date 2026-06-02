@@ -60,6 +60,11 @@ function AnimatedRoutes() {
             <Route path="/indexing" element={<Suspense fallback={<PageLoader />}><Indexing /></Suspense>} />
             <Route path="/tasks" element={<Suspense fallback={<PageLoader />}><Tasks /></Suspense>} />
             <Route path="/admin/keys" element={<Suspense fallback={<PageLoader />}><AdminKeys /></Suspense>} />
+            <Route path="/failures" element={<Suspense fallback={<PageLoader />}><Analysis /></Suspense>} />
+            <Route path="/fixes" element={<Suspense fallback={<PageLoader />}><Validation /></Suspense>} />
+            <Route path="/analytics" element={<Suspense fallback={<PageLoader />}><Review /></Suspense>} />
+            <Route path="/repositories" element={<Suspense fallback={<PageLoader />}><Indexing /></Suspense>} />
+            <Route path="/settings" element={<Suspense fallback={<PageLoader />}><AdminKeys /></Suspense>} />
           </Route>
         </Route>
       </Routes>

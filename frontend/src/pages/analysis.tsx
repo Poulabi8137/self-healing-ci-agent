@@ -7,7 +7,10 @@ import { StatusBadge } from '@/components/status-badge'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { useTriggerAnalysis, useTriggerFix } from '@/lib/api'
+import { demoAnalysisResult, demoFixResult, demoWorkflowLogsByType } from '@/lib/demo-data'
 import type { AnalysisResult, FixResult } from '@/lib/types'
+
+const FAILURE_TYPES = Object.keys(demoWorkflowLogsByType)
 
 export default function Analysis() {
   const [repo, setRepo] = useState('')
@@ -51,13 +54,32 @@ export default function Analysis() {
   return (
     <PageTransition>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Analysis</h1>
-        <p className="text-sm text-muted-foreground">Root cause analysis for CI/CD failures</p>
+        <h1 className="text-2xl font-semibold">Failure Analysis</h1>
+        <p className="text-sm text-muted-foreground">Identify root causes and generate fixes for CI/CD failures</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <SpotlightCard className="p-6">
-          <h2 className="mb-4 text-sm font-medium text-muted-foreground">CI/CD Log Input</h2>
+          <SpotlightCard className="p-6">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-medium text-muted-foreground">Failure Logs</h2>
+            <select
+              value=""
+              onChange={(e) => {
+                const key = e.target.value
+                if (!key || !demoWorkflowLogsByType[key]) return
+                setRepo(demoWorkflowLogsByType[key].repo)
+                setLogs(demoWorkflowLogsByType[key].logs)
+                setResult(demoAnalysisResult)
+                setFix(demoFixResult)
+              }}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer max-w-[140px]"
+            >
+              <option value="">Load Example</option>
+              {FAILURE_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-4" role="form" aria-label="Analysis input form">
             <div>
               <label htmlFor="analysis-repo" className="mb-1.5 block text-xs font-medium text-muted-foreground">Repository name</label>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, Bug, Package, Beaker } from 'lucide-react'
+import { Shield, Bug, Package, Beaker, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTransition } from '@/components/page-transition'
 import { StaggerGrid, StaggerItem } from '@/components/stagger-grid'
@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/status-badge'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { useTriggerValidation } from '@/lib/api'
+import { demoExampleRepo, demoExampleLogs, demoValidationResult } from '@/lib/demo-data'
 import type { ValidationCheckResult } from '@/lib/types'
 
 export default function Validation() {
@@ -40,13 +41,26 @@ export default function Validation() {
   return (
     <PageTransition>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Validation</h1>
-        <p className="text-sm text-muted-foreground">Fix validation pipeline</p>
+        <h1 className="text-2xl font-semibold">Fix Validation</h1>
+        <p className="text-sm text-muted-foreground">Validate generated patches against your CI/CD pipeline</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <SpotlightCard className="p-6">
-          <h2 className="mb-4 text-sm font-medium text-muted-foreground">Validation Pipeline</h2>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-medium text-muted-foreground">Patch Validation</h2>
+            <button
+              onClick={() => {
+                setRepo(demoExampleRepo)
+                setLogs(demoExampleLogs)
+                setResult(demoValidationResult)
+              }}
+              className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent transition-colors"
+            >
+              <BookOpen className="h-3 w-3" />
+              Load Example
+            </button>
+          </div>
           <div className="space-y-4" role="form" aria-label="Validation input form">
             <div>
               <label htmlFor="validation-repo" className="mb-1.5 block text-xs font-medium text-muted-foreground">Repository name</label>
@@ -185,7 +199,7 @@ export default function Validation() {
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
                   <Shield className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground">Validation results will appear here</p>
+                <p className="text-sm text-muted-foreground">Submit logs to validate a generated fix</p>
               </div>
             </motion.div>
           )}

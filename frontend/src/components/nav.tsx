@@ -1,14 +1,13 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
-  Search,
+  AlertTriangle,
   ShieldCheck,
-  RefreshCw,
-  FileText,
   GitPullRequest,
-  Database,
+  BookOpen,
+  BarChart3,
   ListTodo,
-  Key,
+  Settings,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -22,15 +21,17 @@ interface NavItem {
 }
 
 const items: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Analysis', href: '/analysis', icon: Search },
-  { label: 'Validation', href: '/validation', icon: ShieldCheck, roles: ['recruiter', 'admin'] },
-  { label: 'Retry', href: '/retry', icon: RefreshCw, roles: ['recruiter', 'admin'] },
-  { label: 'Review', href: '/review', icon: FileText, roles: ['recruiter', 'admin'] },
+  { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Failures', href: '/analysis', icon: AlertTriangle },
+  { label: 'Fixes', href: '/validation', icon: ShieldCheck, roles: ['recruiter', 'admin'] },
   { label: 'Pull Requests', href: '/pr', icon: GitPullRequest, roles: ['recruiter', 'admin'] },
-  { label: 'Indexing', href: '/indexing', icon: Database, roles: ['recruiter', 'admin'] },
+  { label: 'Repositories', href: '/indexing', icon: BookOpen, roles: ['recruiter', 'admin'] },
+  { label: 'Analytics', href: '/review', icon: BarChart3, roles: ['recruiter', 'admin'] },
+]
+
+const secondaryItems: NavItem[] = [
   { label: 'Tasks', href: '/tasks', icon: ListTodo },
-  { label: 'API Keys', href: '/admin/keys', icon: Key, roles: ['admin'] },
+  { label: 'Settings', href: '/admin/keys', icon: Settings, roles: ['admin'] },
 ]
 
 export function Nav() {
@@ -38,6 +39,10 @@ export function Nav() {
   const userRole = role ?? 'candidate'
 
   const visible = items.filter(
+    (item) => !item.roles || item.roles.includes(userRole as 'candidate' | 'recruiter' | 'admin'),
+  )
+
+  const visibleSecondary = secondaryItems.filter(
     (item) => !item.roles || item.roles.includes(userRole as 'candidate' | 'recruiter' | 'admin'),
   )
 
@@ -61,6 +66,29 @@ export function Nav() {
           {item.label}
         </NavLink>
       ))}
+      {visibleSecondary.length > 0 && (
+        <>
+          <div className="my-2 border-t border-border" />
+          {visibleSecondary.map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              aria-label={item.label}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                )
+              }
+            >
+              <item.icon className="h-4 w-4" aria-hidden="true" />
+              {item.label}
+            </NavLink>
+          ))}
+        </>
+      )}
     </nav>
   )
 }

@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/status-badge'
 import { EmptyState } from '@/components/empty-state'
 import { MetricCard } from '@/components/metric-card'
 import { useTaskList } from '@/lib/api'
+import { demoTasks } from '@/lib/demo-data'
 import type { TaskStatusResponse } from '@/lib/types'
 
 function TaskCard({ task, index }: { task: TaskStatusResponse; index: number }) {
@@ -102,8 +103,8 @@ function TaskCard({ task, index }: { task: TaskStatusResponse; index: number }) 
 }
 
 export default function Tasks() {
-  const { data: tasks, error } = useTaskList()
-  const taskList = tasks ?? []
+  const { data: _tasks, error } = useTaskList()
+  const taskList = _tasks ?? demoTasks
 
   const completed = taskList.filter((t) => t.status === 'completed').length
   const running = taskList.filter((t) => t.status === 'running').length

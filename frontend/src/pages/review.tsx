@@ -1,10 +1,9 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, BarChart, Bar, Cell,
+  ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, Tooltip,
 } from 'recharts'
-import { Shield, Eye } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { PageTransition } from '@/components/page-transition'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
@@ -12,27 +11,11 @@ import { MetricCard } from '@/components/metric-card'
 import { AnimatedCounter } from '@/components/animated-counter'
 import { StatusBadge } from '@/components/status-badge'
 import { useChartData } from '@/lib/api'
+import { demoReviewScores } from '@/lib/demo-data'
 import { tabContentVariants, safeTransition, duration } from '@/lib/motion'
 import type { ReviewScores } from '@/lib/types'
 
 const scoreColors = ['#3b82f6', '#22c55e', '#eab308', '#a855f7']
-
-const trendData = [
-  { week: 'W1', security: 72, performance: 68, quality: 75, coverage: 60 },
-  { week: 'W2', security: 78, performance: 72, quality: 80, coverage: 65 },
-  { week: 'W3', security: 82, performance: 78, quality: 78, coverage: 70 },
-  { week: 'W4', security: 85, performance: 82, quality: 84, coverage: 72 },
-  { week: 'W5', security: 88, performance: 80, quality: 86, coverage: 75 },
-  { week: 'W6', security: 92, performance: 85, quality: 90, coverage: 78 },
-]
-
-const recentReviews = [
-  { id: '1', repo: 'frontend-app', status: 'passed' as const, score: 88, date: '2m ago' },
-  { id: '2', repo: 'api-service', status: 'partial' as const, score: 72, date: '15m ago' },
-  { id: '3', repo: 'infra-modules', status: 'passed' as const, score: 95, date: '1h ago' },
-  { id: '4', repo: 'docs-site', status: 'passed' as const, score: 91, date: '3h ago' },
-  { id: '5', repo: 'mobile-sdk', status: 'failed' as const, score: 45, date: '6h ago' },
-]
 
 function RadarScoreCard({ data }: { data: ReviewScores }) {
   const chartData = data.categories.map((cat, i) => ({
@@ -52,27 +35,6 @@ function RadarScoreCard({ data }: { data: ReviewScores }) {
             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
             <Radar name="Score" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2} animationDuration={600} />
           </RadarChart>
-        </ResponsiveContainer>
-      </SpotlightCard>
-    </TiltCard>
-  )
-}
-
-function TrendChart() {
-  return (
-    <TiltCard>
-      <SpotlightCard className="p-6">
-        <h3 className="mb-4 text-sm font-medium text-muted-foreground">Historical Trend</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={trendData}>
-            <XAxis dataKey="week" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ background: '#121213', border: '1px solid #1f1f23', borderRadius: 8, fontSize: 13 }} itemStyle={{ color: '#fafafa' }} />
-            <Line type="monotone" dataKey="security" stroke="#3b82f6" strokeWidth={2} dot={false} animationDuration={600} />
-            <Line type="monotone" dataKey="performance" stroke="#22c55e" strokeWidth={2} dot={false} animationDuration={600} />
-            <Line type="monotone" dataKey="quality" stroke="#eab308" strokeWidth={2} dot={false} animationDuration={600} />
-            <Line type="monotone" dataKey="coverage" stroke="#a855f7" strokeWidth={2} dot={false} animationDuration={600} />
-          </LineChart>
         </ResponsiveContainer>
       </SpotlightCard>
     </TiltCard>
@@ -101,8 +63,8 @@ function OverallScore({ score }: { score: number }) {
             </span>
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">Overall Confidence</p>
-            <p className="text-xs text-muted-foreground">Multi-agent consensus score</p>
+            <p className="text-sm font-medium text-foreground">Overall Score</p>
+            <p className="text-xs text-muted-foreground">Aggregate code health across categories</p>
             <div className="mt-2 flex items-center gap-2">
               <StatusBadge status={score >= 80 ? 'passed' : score >= 60 ? 'partial' : 'failed'} animated={false} />
             </div>
@@ -134,23 +96,40 @@ function DistributionChart({ data }: { data: ReviewScores }) {
 }
 
 export default function Review() {
-  const { data: reviewData } = useChartData<ReviewScores>('review-scores')
-  const data = reviewData ?? { categories: ['Security', 'Performance', 'Quality', 'Coverage'], scores: [92, 85, 90, 78] }
-  const [activeReview, setActiveReview] = useState<string | null>(null)
+  const { data: _reviewData } = useChartData<ReviewScores>('review-scores')
+  const data = _reviewData ?? demoReviewScores
 
   const overallScore = Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length)
+
+  if (data.categories.length === 0) {
+    return (
+      <PageTransition>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-semibold">Code Health</h1>
+            <p className="text-sm text-muted-foreground">Track code quality metrics and review scores</p>
+          </div>
+          <div className="flex items-center justify-center rounded-xl border border-border bg-card py-16">
+            <div className="text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                <Eye className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">No health data available yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Code health scores appear after repositories are connected</p>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    )
+  }
 
   return (
     <PageTransition>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Review</h1>
-            <p className="text-sm text-muted-foreground">Multi-agent review scores</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Shield className="h-3.5 w-3.5 text-emerald-500" />
-            <span>All agents reporting</span>
+            <h1 className="text-2xl font-semibold">Code Health</h1>
+            <p className="text-sm text-muted-foreground">Track code quality metrics and review scores</p>
           </div>
         </div>
 
@@ -164,7 +143,6 @@ export default function Review() {
                   value={data.scores[i] ?? 0}
                   suffix="%"
                   decimals={0}
-                  trend={i === 0 ? { value: 8, positive: true } : i === 1 ? { value: 3, positive: true } : undefined}
                 />
               ))}
             </div>
@@ -179,42 +157,10 @@ export default function Review() {
               <RadarScoreCard data={data} />
               <DistributionChart data={data} />
             </motion.div>
-
-            <TrendChart />
           </div>
 
           <div className="space-y-4">
             <OverallScore score={overallScore} />
-
-            <TiltCard>
-              <SpotlightCard className="p-5">
-                <div className="mb-3 flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="text-sm font-medium">Recent Reviews</h3>
-                </div>
-                <div className="space-y-2">
-                  {recentReviews.map((r) => (
-                    <motion.button
-                      key={r.id}
-                      onClick={() => setActiveReview(r.id === activeReview ? null : r.id)}
-                      whileTap={{ scale: 0.98 }}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors ${
-                        activeReview === r.id ? 'bg-accent' : 'hover:bg-muted/50'
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{r.repo}</p>
-                        <p className="text-[10px] text-muted-foreground">{r.date}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs tabular-nums">{r.score}</span>
-                        <StatusBadge status={r.status} animated={false} />
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </SpotlightCard>
-            </TiltCard>
           </div>
         </div>
       </div>
