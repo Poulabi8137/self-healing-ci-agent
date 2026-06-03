@@ -6,8 +6,7 @@ import { PageTransition } from '@/components/page-transition'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { StatusBadge } from '@/components/status-badge'
-import { StaggerGrid, StaggerItem } from '@/components/stagger-grid'
-import { GlassCard } from '@/components/GlassCard'
+
 import { useTriggerIndex } from '@/lib/api'
 import { demoIndexedRepos } from '@/lib/demo-data'
 
