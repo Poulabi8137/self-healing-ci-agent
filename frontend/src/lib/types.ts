@@ -67,7 +67,8 @@ export interface AuthMeResponse {
   key_prefix: string
   name: string
   role: 'candidate' | 'recruiter' | 'admin'
-  created_at: string
+  created: string
+  lastUsed: string | null
 }
 
 export interface TaskSubmitResponse {
@@ -85,9 +86,11 @@ export interface TaskStatusResponse {
   updated_at: string
 }
 
+export type ActivityType = 'workflow_run' | 'failure_detected' | 'fix_generated' | 'pr_created' | 'validation_passed' | 'validation_failed' | 'retry_attempted' | 'auto_resolved' | 'human_resolved' | 'decision_made' | 'strategy_selected' | 'hypothesis_evaluated' | 'confidence_changed' | 'reassessment' | 'escalation' | 'health_impact'
+
 export interface ActivityItem {
   id: number
-  type: 'workflow_run' | 'failure_detected' | 'fix_generated' | 'pr_created' | 'validation_passed' | 'validation_failed' | 'retry_attempted' | 'auto_resolved' | 'human_resolved'
+  type: ActivityType
   repo: string
   message: string
   timestamp: string
@@ -124,4 +127,54 @@ export interface FixTriggerResponse {
 export interface ValidationTriggerResponse {
   status: string
   result: ValidationCheckResult
+}
+
+// Decision Engine Types
+export interface Evidence {
+  source: string
+  detail: string
+  weight: number
+}
+
+export interface RootCauseCandidate {
+  root_cause: string
+  error_category: string
+  confidence: number
+  affected_files: string[]
+  evidence: Evidence[]
+  reasoning: string
+  score: number
+}
+
+export interface StrategyEvaluation {
+  fix_summary: string
+  assumptions: string[]
+  patch: string
+  strategy_score: number
+  success_probability: number
+  risk_level: 'low' | 'medium' | 'high'
+  estimated_execution_time: string
+  reasoning: string
+}
+
+export interface DecisionRecord {
+  id: string
+  type: 'hypothesis_evaluation' | 'strategy_selection' | 'validation_outcome' | 'reassessment' | 'health_impact'
+  context: string
+  outcome: string
+  confidence_before: number
+  confidence_after: number
+  rationale: string
+  evidence_used: string[]
+  timestamp: string
+}
+
+export interface BranchNode {
+  id: string
+  label: string
+  type: 'root_cause' | 'strategy' | 'validation' | 'resolution' | 'failure'
+  outcome?: string
+  children: BranchNode[]
+  decision?: DecisionRecord
+  status: 'active' | 'completed' | 'failed'
 }

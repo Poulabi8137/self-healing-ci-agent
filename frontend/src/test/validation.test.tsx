@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/lib/auth'
+import { AgentProvider } from '@/lib/agent-context'
 import ValidationPage from '@/pages/validation'
 
 function renderValidation() {
@@ -11,7 +12,9 @@ function renderValidation() {
     <MemoryRouter>
       <QueryClientProvider client={qc}>
         <AuthProvider>
-          <ValidationPage />
+          <AgentProvider>
+            <ValidationPage />
+          </AgentProvider>
         </AuthProvider>
       </QueryClientProvider>
     </MemoryRouter>,
@@ -32,7 +35,7 @@ describe('ValidationPage', () => {
 
   it('shows empty state before validation', () => {
     renderValidation()
-    expect(screen.getByText('Submit logs to validate a generated fix')).toBeInTheDocument()
+    expect(screen.getByText('Load example data or submit logs to run validation')).toBeInTheDocument()
   })
 
   it('has a form role with correct label', () => {

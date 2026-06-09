@@ -1,8 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
+import { AgentProvider } from '../lib/agent-context'
 import { DarkModeToggle } from '../components/dark-mode'
 import { DemoBanner } from '../components/demo-banner'
-import { useEffect, useCallback, useRef } from 'react'
+import { AgentStatus } from '../components/agent-status'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import { AlertTriangle, ShieldCheck, GitPullRequest, BookOpen, BarChart3, Settings, ListTodo, LogOut, LayoutDashboard } from 'lucide-react'
 
 interface NavItem {
@@ -25,10 +27,19 @@ const SECONDARY_ITEMS: NavItem[] = [
   { to: '/tasks', label: 'Tasks', icon: ListTodo },
 ]
 
+function NavBadge({ count }: { count: number }) {
+  if (count === 0) return null
+  return (
+    <span className="ml-1 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-medium text-blue-400">{count}</span>
+  )
+}
+
 export default function Layout() {
   const { isAuthenticated, role, logout } = useAuth()
   const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
+  const [activeInvestigations] = useState(3)
+  const [activeFixes] = useState(2)
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') mainRef.current?.focus()
@@ -42,6 +53,7 @@ export default function Layout() {
   if (!isAuthenticated) return null
 
   return (
+    <AgentProvider>
     <div className="min-h-screen bg-[#070708] text-zinc-100 flex flex-col">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded">
         Skip to main content
@@ -73,6 +85,8 @@ export default function Layout() {
                     >
                       <Icon className="h-3.5 w-3.5" />
                       {item.label}
+                      {item.to === '/analysis' && <NavBadge count={activeInvestigations} />}
+                      {item.to === '/validation' && <NavBadge count={activeFixes} />}
                     </Link>
                   )
                 })}
@@ -101,6 +115,7 @@ export default function Layout() {
             <div className="flex items-center gap-3">
               <DarkModeToggle />
               <div className="flex items-center gap-2.5">
+                <AgentStatus />
                 <span className="text-xs text-zinc-500 hidden sm:inline">{role ?? 'user'}</span>
                 <span className="hidden sm:inline-flex h-5 w-px bg-[#1f1f23]" />
                 <button
@@ -117,6 +132,42 @@ export default function Layout() {
         </div>
       </header>
 
+      <div className="border-b border-[#1f1f23]/50 bg-[#0a0a0c]/40">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 py-1.5 text-[10px] text-zinc-600 overflow-x-auto">
+            <span className="flex items-center gap-1 shrink-0">
+              <span className="h-1 w-1 rounded-full bg-emerald-500" />
+              <span className="text-zinc-500">System:</span>
+              <span className="text-emerald-400 font-medium">Operational</span>
+            </span>
+            <span className="h-3 w-px bg-zinc-800 shrink-0" />
+            <span className="flex items-center gap-1 shrink-0">
+              <span className="h-1 w-1 rounded-full bg-amber-500" />
+              <span className="text-zinc-500">Active:</span>
+              <span className="text-zinc-300 font-medium">{activeInvestigations} investigation{activeInvestigations !== 1 ? 's' : ''}</span>
+            </span>
+            <span className="h-3 w-px bg-zinc-800 shrink-0" />
+            <span className="flex items-center gap-1 shrink-0">
+              <span className="h-1 w-1 rounded-full bg-blue-500" />
+              <span className="text-zinc-500">Fixes:</span>
+              <span className="text-zinc-300 font-medium">{activeFixes} pending</span>
+            </span>
+            <span className="h-3 w-px bg-zinc-800 shrink-0" />
+            <span className="flex items-center gap-1 shrink-0">
+              <span className="h-1 w-1 rounded-full bg-emerald-500" />
+              <span className="text-zinc-500">Auto-fixes today:</span>
+              <span className="text-zinc-300 font-medium">8</span>
+            </span>
+            <span className="h-3 w-px bg-zinc-800 shrink-0" />
+            <span className="flex items-center gap-1 shrink-0">
+              <span className="h-1 w-1 rounded-full bg-violet-500" />
+              <span className="text-zinc-500">Health:</span>
+              <span className="text-zinc-300 font-medium">70.7%</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
       <main
         ref={mainRef}
         id="main-content"
@@ -129,5 +180,6 @@ export default function Layout() {
         </div>
       </main>
     </div>
+    </AgentProvider>
   )
 }

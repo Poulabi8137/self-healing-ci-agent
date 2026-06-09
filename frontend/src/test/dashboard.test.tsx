@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/lib/auth'
+import { AgentProvider } from '@/lib/agent-context'
 import Dashboard from '@/pages/dashboard'
 
 function renderDashboard() {
@@ -14,9 +15,11 @@ function renderDashboard() {
   return render(
     <QueryClientProvider client={qc}>
       <AuthProvider>
-        <BrowserRouter>
-          <Dashboard />
-        </BrowserRouter>
+        <AgentProvider>
+          <BrowserRouter>
+            <Dashboard />
+          </BrowserRouter>
+        </AgentProvider>
       </AuthProvider>
     </QueryClientProvider>,
   )

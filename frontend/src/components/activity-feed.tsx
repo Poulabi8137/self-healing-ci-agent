@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Activity, GitPullRequest, AlertTriangle, CheckCircle, RotateCw, Wrench, Users } from 'lucide-react'
+import { Activity, GitPullRequest, AlertTriangle, CheckCircle, RotateCw, Wrench, Users, Lightbulb, TrendingUp, Search, Target, RefreshCw, ArrowUpRight } from 'lucide-react'
 import type { ActivityItem } from '@/lib/types'
 import { demoActivities } from '@/lib/demo-data'
+import { timeAgo } from '@/lib/time'
 
 const iconMap: Record<ActivityItem['type'], typeof Activity> = {
   workflow_run: Activity,
@@ -13,6 +14,13 @@ const iconMap: Record<ActivityItem['type'], typeof Activity> = {
   retry_attempted: RotateCw,
   auto_resolved: CheckCircle,
   human_resolved: Users,
+  decision_made: Lightbulb,
+  strategy_selected: Target,
+  hypothesis_evaluated: Search,
+  confidence_changed: TrendingUp,
+  reassessment: RefreshCw,
+  escalation: AlertTriangle,
+  health_impact: ArrowUpRight,
 }
 
 const itemLink: Record<ActivityItem['type'], string> = {
@@ -25,6 +33,13 @@ const itemLink: Record<ActivityItem['type'], string> = {
   retry_attempted: '/retry',
   auto_resolved: '/dashboard',
   human_resolved: '/dashboard',
+  decision_made: '/analysis',
+  strategy_selected: '/analysis',
+  hypothesis_evaluated: '/analysis',
+  confidence_changed: '/dashboard',
+  reassessment: '/validation',
+  escalation: '/validation',
+  health_impact: '/dashboard',
 }
 
 export function ActivityFeed({ items }: { items?: ActivityItem[] }) {
@@ -61,9 +76,6 @@ export function ActivityFeed({ items }: { items?: ActivityItem[] }) {
             item.status === 'failure' ? 'text-red-500' :
             item.status === 'pending' ? 'text-amber-500' :
             'text-blue-500'
-          const time = new Date(item.timestamp)
-          const timeStr = time.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-
           return (
             <Link
               key={item.id}
@@ -76,7 +88,7 @@ export function ActivityFeed({ items }: { items?: ActivityItem[] }) {
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-zinc-300 leading-relaxed">{item.message}</p>
                 <p className="mt-0.5 text-[10px] text-zinc-600">
-                  {item.repo} · {timeStr}
+                  {item.repo} · {timeAgo(item.timestamp)}
                 </p>
               </div>
             </Link>

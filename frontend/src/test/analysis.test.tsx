@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/lib/auth'
+import { AgentProvider } from '@/lib/agent-context'
 import AnalysisPage from '@/pages/analysis'
 
 function renderAnalysis() {
@@ -11,7 +12,9 @@ function renderAnalysis() {
     <MemoryRouter>
       <QueryClientProvider client={qc}>
         <AuthProvider>
-          <AnalysisPage />
+          <AgentProvider>
+            <AnalysisPage />
+          </AgentProvider>
         </AuthProvider>
       </QueryClientProvider>
     </MemoryRouter>,
@@ -32,7 +35,7 @@ describe('AnalysisPage', () => {
 
   it('shows empty state before analysis', () => {
     renderAnalysis()
-    expect(screen.getByText('Results will appear here')).toBeInTheDocument()
+    expect(screen.getByText('Load example data or submit logs to begin')).toBeInTheDocument()
   })
 
   it('has a form role with correct label', () => {
