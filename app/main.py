@@ -17,6 +17,8 @@ from app.api.review_router import router as review_router
 from app.api.pr_router import router as pr_router
 from app.api.dashboard_router import router as dashboard_router
 from app.api.tasks_router import router as tasks_router
+from app.api.github_router import router as github_router
+from app.api.webhook_router import router as webhook_router
 from app.config.settings import settings
 from app.database.db import init_db
 from app.queue.worker import start_worker, stop_worker
@@ -143,6 +145,8 @@ app.include_router(review_router, prefix="/review")
 app.include_router(pr_router, prefix="/pr")
 app.include_router(dashboard_router, prefix="/dashboard")
 app.include_router(tasks_router, prefix="/tasks")
+app.include_router(github_router, prefix="/api")
+app.include_router(webhook_router, prefix="/webhooks")
 
 
 if __name__ == "__main__":

@@ -71,6 +71,10 @@ class Settings(BaseSettings):
     github_app_private_key: Optional[str] = None
     github_app_webhook_secret: Optional[str] = None
 
+    # GitHub OAuth (for user linking — uses GitHub App's Client ID/Secret)
+    github_oauth_client_id: Optional[str] = None
+    github_oauth_client_secret: Optional[str] = None
+
     # OAuth callback base URL (public URL of the app)
     oauth_callback_url: str = "http://localhost:8000"
 
@@ -119,6 +123,21 @@ class Settings(BaseSettings):
             warnings.append(
                 "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are not set. "
                 "Google OAuth login will be unavailable."
+            )
+        if not self.github_oauth_client_id or not self.github_oauth_client_secret:
+            warnings.append(
+                "GITHUB_OAUTH_CLIENT_ID and GITHUB_OAUTH_CLIENT_SECRET are not set. "
+                "GitHub account linking will be unavailable."
+            )
+        if not self.github_app_id or not self.github_app_private_key:
+            warnings.append(
+                "GITHUB_APP_ID and GITHUB_APP_PRIVATE_KEY are not set. "
+                "GitHub App integration and webhooks will be unavailable."
+            )
+        if not self.github_app_webhook_secret:
+            warnings.append(
+                "GITHUB_APP_WEBHOOK_SECRET is not set. "
+                "Webhook verification will be unavailable."
             )
         if not self.jwt_secret or self.jwt_secret == "dev-secret-change-in-production":
             warnings.append(

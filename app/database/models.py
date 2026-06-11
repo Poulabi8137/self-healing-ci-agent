@@ -15,6 +15,9 @@ class User(Base):
     name = Column(String(255))
     avatar_url = Column(String(500))
     role = Column(String(32), nullable=False, default="member")
+    github_id = Column(Integer, nullable=True, unique=True)
+    github_username = Column(String(255), nullable=True)
+    github_email = Column(String(255), nullable=True)
     last_login_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
@@ -38,6 +41,7 @@ class Repository(Base):
     is_indexed = Column(Boolean, default=False)
     indexed_at = Column(DateTime, nullable=True)
     chunks_count = Column(Integer, default=0)
+    github_installation_id = Column(Integer, ForeignKey("github_installations.id"), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -217,8 +221,9 @@ class GitHubInstallation(Base):
     account_login = Column(String(255))
     account_type = Column(String(50))
     account_avatar = Column(String(500))
+    account_url = Column(String(500), nullable=True)
+    github_id = Column(Integer, nullable=True)
     repos_selected = Column(Text, default="[]")
-    access_token = Column(String(500))
     token_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
@@ -232,6 +237,7 @@ class WebhookEvent(Base):
     __tablename__ = "webhook_events"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    delivery_id = Column(String(255), nullable=True, unique=True)
     github_installation_id = Column(Integer, nullable=True)
     event_type = Column(String(100))
     action = Column(String(100), nullable=True)
@@ -282,3 +288,17 @@ class AuditLog(Base):
 
     def __repr__(self):
         return f"<AuditLog(id={self.id}, action='{self.action}', user_id={self.user_id})>"
+
+
+class InvestigationEvent(Base):
+    """Structured investigation lifecycle events for future consumers (SSE, Slack, etc.)."""
+    __tablename__ = "investigation_events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=True)
+    event_type = Column(String(100), nullable=False)
+    data = Column(Text, default="{}")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<InvestigationEvent(id={self.id}, type='{self.event_type}', investigation_id={self.investigation_id})>"
