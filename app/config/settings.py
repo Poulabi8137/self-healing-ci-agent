@@ -55,6 +55,25 @@ class Settings(BaseSettings):
     auth_enabled: bool = True
     bootstrap_admin_key: str = ""
 
+    # OAuth — Google
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
+
+    # JWT
+    jwt_secret: str = "dev-secret-change-in-production"  # nosec
+    jwt_ttl_seconds: int = 86400  # 24 hours
+
+    # Admin
+    admin_email: Optional[str] = None
+
+    # GitHub App
+    github_app_id: Optional[str] = None
+    github_app_private_key: Optional[str] = None
+    github_app_webhook_secret: Optional[str] = None
+
+    # OAuth callback base URL (public URL of the app)
+    oauth_callback_url: str = "http://localhost:8000"
+
     # Logging
     log_json: bool = False
 
@@ -95,6 +114,16 @@ class Settings(BaseSettings):
             warnings.append(
                 "GITHUB_TOKEN is not set. GitHub API calls will fail. "
                 "Set it in .env or export the environment variable."
+            )
+        if not self.google_client_id or not self.google_client_secret:
+            warnings.append(
+                "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are not set. "
+                "Google OAuth login will be unavailable."
+            )
+        if not self.jwt_secret or self.jwt_secret == "dev-secret-change-in-production":
+            warnings.append(
+                "JWT_SECRET is using the default development value. "
+                "Set a strong random secret in production."
             )
         return warnings
 

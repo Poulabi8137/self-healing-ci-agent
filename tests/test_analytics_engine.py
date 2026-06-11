@@ -1,3 +1,5 @@
+3
+
 from app.dashboard.analytics_engine import (
     compute_success_rate,
     compute_average_retries,

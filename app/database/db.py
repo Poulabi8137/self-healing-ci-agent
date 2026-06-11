@@ -54,12 +54,12 @@ def _verify_migrations():
 def init_db():
     from app.database.models import Base as ModelsBase
 
-    try:
-        _verify_migrations()
-    except Exception as e:
-        logger.warning(f"Migration verification failed ({str(e)}), falling back to create_all")
+    if settings.debug:
+        logger.info("Dev mode: creating tables via create_all")
         ModelsBase.metadata.create_all(bind=engine)
-        logger.info("Database tables created via create_all fallback.")
+        return
+
+    _verify_migrations()
 
 
 def get_db():

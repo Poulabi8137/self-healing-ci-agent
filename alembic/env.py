@@ -15,8 +15,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 from app.database.models import Base as ModelsBase
-import app.auth.models
-import app.queue.models
+from app.database import models  # noqa: F401 — registers all models
+import app.auth.models  # noqa: F401 — registers ApiKey
+import app.queue.models  # noqa: F401 — registers Task
 
 target_metadata = ModelsBase.metadata
 

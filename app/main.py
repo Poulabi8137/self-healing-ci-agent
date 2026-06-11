@@ -76,13 +76,24 @@ app = FastAPI(
 )
 
 cors_origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=False if cors_origins == ["*"] else True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if cors_origins == ["*"]:
+    logger.warning("CORS: allow_origins=* — credentials not supported")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    logger.info(f"CORS: restricted to {cors_origins}")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 app.add_middleware(RateLimitMiddleware)
 

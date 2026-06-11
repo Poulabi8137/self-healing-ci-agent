@@ -1,8 +1,26 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Index, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, Text
 
 from app.database.db import Base
+
+
+class User(Base):
+    """User accounts from Google OAuth."""
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    google_id = Column(String(255), unique=True, nullable=True)
+    email = Column(String(255), unique=True, nullable=False)
+    name = Column(String(255))
+    avatar_url = Column(String(500))
+    role = Column(String(32), nullable=False, default="member")
+    last_login_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<User(id={self.id}, email='{self.email}', role='{self.role}')>"
 
 
 class Repository(Base):
@@ -13,6 +31,10 @@ class Repository(Base):
     full_name = Column(String(255), nullable=False, unique=True)
     url = Column(String(500))
     default_branch = Column(String(100), default="main")
+    is_active = Column(Boolean, default=True)
+    last_workflow_status = Column(String(50), nullable=True)
+    last_workflow_run_at = Column(DateTime, nullable=True)
+    failure_count = Column(Integer, default=0)
     is_indexed = Column(Boolean, default=False)
     indexed_at = Column(DateTime, nullable=True)
     chunks_count = Column(Integer, default=0)
@@ -28,6 +50,8 @@ class Failure(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     repository_id = Column(Integer, nullable=False)
+    github_installation_id = Column(Integer, nullable=True)
+    investigation_id = Column(Integer, nullable=True)
     workflow_name = Column(String(255))
     run_id = Column(String(255))
     job_name = Column(String(255))
@@ -181,3 +205,80 @@ class Metric(Base):
 
     def __repr__(self):
         return f"<Metric(id={self.id}, repo_id={self.repository_id})>"
+
+
+class GitHubInstallation(Base):
+    """GitHub App installations per user."""
+    __tablename__ = "github_installations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    installation_id = Column(Integer, nullable=False, unique=True)
+    account_login = Column(String(255))
+    account_type = Column(String(50))
+    account_avatar = Column(String(500))
+    repos_selected = Column(Text, default="[]")
+    access_token = Column(String(500))
+    token_expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<GitHubInstallation(id={self.id}, account='{self.account_login}', install={self.installation_id})>"
+
+
+class WebhookEvent(Base):
+    """Incoming GitHub webhook event log."""
+    __tablename__ = "webhook_events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    github_installation_id = Column(Integer, nullable=True)
+    event_type = Column(String(100))
+    action = Column(String(100), nullable=True)
+    payload = Column(Text, default="{}")
+    processed = Column(Boolean, default=False)
+    error = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    processed_at = Column(DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<WebhookEvent(id={self.id}, type='{self.event_type}', processed={self.processed})>"
+
+
+class Investigation(Base):
+    """Investigation tracking with JSON stages."""
+    __tablename__ = "investigations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    failure_id = Column(Integer, ForeignKey("failures.id"), nullable=True)
+    repository_id = Column(Integer, ForeignKey("repositories.id"), nullable=True)
+    status = Column(String(50), default="detecting")
+    root_cause = Column(Text, nullable=True)
+    error_category = Column(String(100), nullable=True)
+    confidence = Column(Float, nullable=True)
+    summary = Column(Text, nullable=True)
+    stages = Column(Text, default="[]")
+    current_stage = Column(String(100), nullable=True)
+    current_stage_status = Column(String(50), default="pending")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    completed_at = Column(DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<Investigation(id={self.id}, status='{self.status}')>"
+
+
+class AuditLog(Base):
+    """Security-relevant action log."""
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action = Column(String(100), nullable=False)
+    resource_type = Column(String(100))
+    resource_id = Column(String(100), nullable=True)
+    details = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<AuditLog(id={self.id}, action='{self.action}', user_id={self.user_id})>"

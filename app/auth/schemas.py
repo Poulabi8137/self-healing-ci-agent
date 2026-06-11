@@ -38,3 +38,23 @@ class MeResponse(BaseModel):
 
 class RevokeApiKeyResponse(BaseModel):
     message: str
+
+
+# --- OAuth / JWT schemas ---
+
+
+class OAuthLoginResponse(BaseModel):
+    authorization_url: str
+
+
+class UserInfoResponse(BaseModel):
+    id: int
+    email: str
+    name: str | None = None
+    avatar_url: str | None = None
+    role: str
+    created_at: str
+
+
+class LogoutResponse(BaseModel):
+    message: str
