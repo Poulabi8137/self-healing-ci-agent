@@ -2,7 +2,6 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { AgentProvider } from '../lib/agent-context'
 import { DarkModeToggle } from '../components/dark-mode'
-import { DemoBanner } from '../components/demo-banner'
 import { AgentStatus } from '../components/agent-status'
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { AlertTriangle, ShieldCheck, GitPullRequest, BookOpen, BarChart3, Settings, ListTodo, LogOut, LayoutDashboard } from 'lucide-react'
@@ -174,7 +173,6 @@ export default function Layout() {
         tabIndex={-1}
         className="flex-1 mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full max-w-7xl outline-none"
       >
-        <DemoBanner />
         <div className="mt-4">
           <Outlet />
         </div>

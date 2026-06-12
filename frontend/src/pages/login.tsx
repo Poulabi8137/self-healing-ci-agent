@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../lib/auth-context'
 import { LoginForm } from '../lib/auth'
 import { AnimatedBackground } from '@/components/AnimatedBackground'
-import { SelfHealingDemo } from '@/components/SelfHealingDemo'
+
 import { containerCinematic, itemVariants } from '@/lib/motion'
 
 function LoginContent() {
@@ -46,15 +46,7 @@ function ProductContent() {
         </p>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="mt-16">
-        <div className="mb-4 flex items-center gap-2">
-          <span className="text-[11px] font-medium text-zinc-600 tracking-wider uppercase">Watch the agent in action</span>
-          <div className="h-px flex-1 bg-[#1f1f23]" />
-        </div>
-        <div className="rounded-xl border border-[#1f1f23] bg-[#121216]/40 p-5">
-          <SelfHealingDemo autoPlay />
-        </div>
-      </motion.div>
+
     </div>
   )
 }

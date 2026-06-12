@@ -130,12 +130,18 @@ class PRRecord(Base):
     __table_args__ = (
         Index("idx_pr_repo", "repository_name"),
         Index("idx_pr_dry_run", "dry_run"),
+        Index("idx_pr_investigation", "investigation_id"),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=True, index=True)
+    repository_id = Column(Integer, ForeignKey("repositories.id"), nullable=True)
     repository_name = Column(String(255), nullable=False)
     branch_name = Column(String(255))
     pr_title = Column(Text)
+    pr_number = Column(Integer, nullable=True)
+    pr_url = Column(String(500), nullable=True)
+    description = Column(Text, nullable=True)
     status = Column(String(50), default="simulated")
     dry_run = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -302,3 +308,97 @@ class InvestigationEvent(Base):
 
     def __repr__(self):
         return f"<InvestigationEvent(id={self.id}, type='{self.event_type}', investigation_id={self.investigation_id})>"
+
+
+class FixArtifact(Base):
+    """Persisted fix artifact for an investigation."""
+    __tablename__ = "fix_artifacts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=False, index=True)
+    fix_summary = Column(Text, nullable=True)
+    root_cause = Column(Text, nullable=True)
+    confidence_score = Column(Float, nullable=True)
+    files_modified = Column(Text, nullable=True)
+    patch_content = Column(Text, nullable=True)
+    branch_name = Column(String(255), nullable=True)
+    dry_run = Column(Boolean, default=True)
+    status = Column(String(50), default="generated")
+    generated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    applied_at = Column(DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<FixArtifact(id={self.id}, investigation_id={self.investigation_id}, status='{self.status}')>"
+
+
+class ValidationResult(Base):
+    """Persisted validation stage results for an investigation."""
+    __tablename__ = "validation_results"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=False, index=True)
+    validation_type = Column(String(100), nullable=False)
+    status = Column(String(50), nullable=False, default="pending")
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    duration_ms = Column(Integer, nullable=True)
+    logs = Column(Text, nullable=True)
+    metadata_json = Column(Text, nullable=True)
+    confidence_score = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<ValidationResult(id={self.id}, type='{self.validation_type}', status='{self.status}')>"
+
+
+class Notification(Base):
+    """Persisted notification delivery record."""
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    channel_type = Column(String(50), nullable=False)  # 'email' or 'slack'
+    event_type = Column(String(100), nullable=False)
+    status = Column(String(50), nullable=False, default="pending")  # pending, sent, failed
+    recipient = Column(String(255), nullable=True)  # email address or slack user/channel
+    subject = Column(String(500), nullable=True)
+    body = Column(Text, nullable=True)
+    delivered_at = Column(DateTime, nullable=True)
+    failure_reason = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<Notification(id={self.id}, user_id={self.user_id}, type='{self.channel_type}', event='{self.event_type}', status='{self.status}')>"
+
+
+class NotificationSetting(Base):
+    """Per-user notification preferences."""
+    __tablename__ = "notification_settings"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    email_enabled = Column(Boolean, default=True)
+    slack_enabled = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<NotificationSetting(user_id={self.user_id}, email={self.email_enabled}, slack={self.slack_enabled})>"
+
+
+class SlackWorkspace(Base):
+    """Persisted Slack workspace connection per user."""
+    __tablename__ = "slack_workspaces"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    workspace_id = Column(String(100), nullable=False)
+    workspace_name = Column(String(255), nullable=True)
+    access_token = Column(String(500), nullable=False)
+    selected_channel_id = Column(String(100), nullable=True)
+    selected_channel_name = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<SlackWorkspace(user_id={self.user_id}, workspace='{self.workspace_name}')>"

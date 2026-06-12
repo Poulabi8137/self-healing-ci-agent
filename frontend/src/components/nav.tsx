@@ -8,6 +8,8 @@ import {
   BarChart3,
   ListTodo,
   Settings,
+  Activity,
+  Bell,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -22,6 +24,7 @@ interface NavItem {
 
 const items: NavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Investigations', href: '/investigations', icon: Activity },
   { label: 'Failures', href: '/analysis', icon: AlertTriangle },
   { label: 'Fixes', href: '/validation', icon: ShieldCheck, roles: ['recruiter', 'admin'] },
   { label: 'Pull Requests', href: '/pr', icon: GitPullRequest, roles: ['recruiter', 'admin'] },
@@ -31,6 +34,7 @@ const items: NavItem[] = [
 
 const secondaryItems: NavItem[] = [
   { label: 'Tasks', href: '/tasks', icon: ListTodo },
+  { label: 'Notifications', href: '/notifications', icon: Bell },
   { label: 'Settings', href: '/admin/keys', icon: Settings, roles: ['admin'] },
 ]
 

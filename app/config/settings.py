@@ -75,6 +75,10 @@ class Settings(BaseSettings):
     github_oauth_client_id: Optional[str] = None
     github_oauth_client_secret: Optional[str] = None
 
+    # Slack OAuth
+    slack_client_id: Optional[str] = None
+    slack_client_secret: Optional[str] = None
+
     # OAuth callback base URL (public URL of the app)
     oauth_callback_url: str = "http://localhost:8000"
 
@@ -143,6 +147,11 @@ class Settings(BaseSettings):
             warnings.append(
                 "JWT_SECRET is using the default development value. "
                 "Set a strong random secret in production."
+            )
+        if not self.slack_client_id or not self.slack_client_secret:
+            warnings.append(
+                "SLACK_CLIENT_ID and SLACK_CLIENT_SECRET are not set. "
+                "Slack integration will be unavailable."
             )
         return warnings
 

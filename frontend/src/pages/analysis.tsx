@@ -9,12 +9,7 @@ import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { useAgent } from '@/lib/agent-context'
 import { useTriggerAnalysis, useTriggerFix } from '@/lib/api'
-import { demoWorkflowLogsByType, demoRepos } from '@/lib/demo-data'
-import { demoRootCauseCandidates, demoStrategyCandidates } from '@/lib/demo-candidates'
-import { getDecisionEngine } from '@/lib/decision-engine'
 import type { AnalysisResult, FixResult, RootCauseCandidate, StrategyEvaluation } from '@/lib/types'
-
-const FAILURE_TYPES = Object.keys(demoWorkflowLogsByType)
 
 interface Step {
   id: string
@@ -31,40 +26,24 @@ const INVESTIGATION_STEPS: Step[] = [
 ]
 
 export default function Analysis() {
-  const { setState: setAgent, setMode, recordDecision, appendActivity } = useAgent()
+  const { setState: setAgent, setMode, appendActivity } = useAgent()
   const [repo, setRepo] = useState('')
   const [logs, setLogs] = useState('')
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [fix, setFix] = useState<FixResult | null>(null)
   const [stepIdx, setStepIdx] = useState(-1)
   const [phase, setPhase] = useState<'idle' | 'investigating' | 'generating' | 'done'>('idle')
-  const [rootCauseCandidates, setRootCauseCandidates] = useState<RootCauseCandidate[]>([])
+  const [rootCauseCandidates] = useState<RootCauseCandidate[]>([])
   const [selectedRootCause, setSelectedRootCause] = useState<RootCauseCandidate | null>(null)
-  const [evaluatedStrategies, setEvaluatedStrategies] = useState<StrategyEvaluation[]>([])
-  const [selectedStrategy, setSelectedStrategy] = useState<StrategyEvaluation | null>(null)
+  const [evaluatedStrategies] = useState<StrategyEvaluation[]>([])
+  const [selectedStrategy] = useState<StrategyEvaluation | null>(null)
 
-  const engine = getDecisionEngine()
   const analysisMutation = useTriggerAnalysis()
   const fixMutation = useTriggerFix()
   const [autoAdvancing, setAutoAdvancing] = useState(false)
   const autoTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const advanceRef = useRef<() => void>(() => {})
   const generateRef = useRef<() => void>(() => {})
-
-  const handleLoadExample = useCallback((key: string) => {
-    const entry = demoWorkflowLogsByType[key]
-    if (!entry) return
-    setRepo(entry.repo)
-    setLogs(entry.logs)
-    setResult(null)
-    setFix(null)
-    setStepIdx(-1)
-    setPhase('idle')
-    setRootCauseCandidates([])
-    setSelectedRootCause(null)
-    setEvaluatedStrategies([])
-    setSelectedStrategy(null)
-  }, [])
 
   const handleBeginInvestigation = useCallback(() => {
     setPhase('investigating')
@@ -75,115 +54,17 @@ export default function Analysis() {
   }, [repo, setMode, appendActivity])
 
   const handleAdvance = useCallback(() => {
-    const entry = Object.values(demoWorkflowLogsByType).find(e => e.repo === repo)
-    if (!entry) return
-
     if (stepIdx < INVESTIGATION_STEPS.length - 1) {
       setStepIdx((i) => i + 1)
       const step = INVESTIGATION_STEPS[stepIdx + 1]
-
-      if (step.id === 'root_cause' && !selectedRootCause) {
-        // Evaluate root causes
-        setMode('evaluating_hypotheses', 'Evaluating Hypotheses', entry.repo)
-        const failureKey = Object.keys(demoWorkflowLogsByType).find(k => demoWorkflowLogsByType[k].repo === entry.repo)
-        const candidates = failureKey ? demoRootCauseCandidates[failureKey] : undefined
-        if (candidates) {
-          const repoInfo = demoRepos.find(r => r.repository_name === entry.repo)
-          const evaluated = engine.evaluateRootCauses(candidates, repoInfo?.success_rate ?? 70, 0.7)
-          setRootCauseCandidates(evaluated)
-          setSelectedRootCause(evaluated[0])
-          setResult({
-            root_cause: evaluated[0].root_cause,
-            error_category: evaluated[0].error_category,
-            confidence: evaluated[0].confidence,
-            affected_files: evaluated[0].affected_files,
-          })
-          // Record decision
-          const dec = engine.recordDecision(
-            'hypothesis_evaluation',
-            evaluated[0].root_cause.substring(0, 80),
-            `Selected: ${evaluated[0].error_category} with ${(evaluated[0].confidence * 100).toFixed(0)}% confidence`,
-            0,
-            evaluated[0].confidence,
-            evaluated[0].reasoning,
-            evaluated[0].evidence.map(e => e.detail)
-          )
-          recordDecision(dec)
-          // Record branch node
-          const hypBranch = engine.addBranchNode(null, `${evaluated[0].error_category} (${(evaluated[0].confidence * 100).toFixed(0)}%)`, 'root_cause', undefined, dec)
-          // Add alternative hypotheses as child branches
-          evaluated.slice(1).forEach((alt) => {
-            engine.addBranchNode(hypBranch.id, `${alt.error_category} (${(alt.confidence * 100).toFixed(0)}%)`, 'root_cause', 'Rejected — lower confidence score')
-          })
-          appendActivity({
-            type: 'hypothesis_evaluated',
-            message: `Root cause evaluated: ${evaluated[0].error_category} (${(evaluated[0].confidence * 100).toFixed(0)}% confidence)`,
-            status: 'success',
-          })
-        }
-      }
-
       setAgent({ label: `Investigating`, context: step.title, color: 'amber' })
-    } else {
-      // Move to fix generation - evaluate strategies
-      const failureKey = Object.keys(demoWorkflowLogsByType).find(k => demoWorkflowLogsByType[k].repo === repo)
-      if (failureKey && selectedRootCause) {
-        setMode('comparing_strategies', 'Comparing Strategies', entry.repo)
-        const strategyDefs = demoStrategyCandidates[failureKey]
-        if (strategyDefs) {
-          const repoInfo = demoRepos.find(r => r.repository_name === entry.repo)
-          const strategies = engine.evaluateStrategies(selectedRootCause, strategyDefs, {
-            risk_level: selectedRootCause.confidence > 0.8 ? 'low' : 'medium',
-            repo_health: repoInfo?.success_rate ?? 70,
-            affected_files_count: selectedRootCause.affected_files.length,
-            historical_success_rate: repoInfo?.avg_confidence ?? 0.8,
-          })
-          setEvaluatedStrategies(strategies)
-          setSelectedStrategy(strategies[0])
-          setFix({
-            fix_summary: strategies[0].fix_summary,
-            assumptions: strategies[0].assumptions,
-            patch: strategies[0].patch,
-          })
-          // Record decision
-          const dec = engine.recordDecision(
-            'strategy_selection',
-            strategies[0].fix_summary.substring(0, 80),
-            `Selected strategy with ${(strategies[0].strategy_score * 100).toFixed(0)}% score, ${(strategies[0].success_probability * 100).toFixed(0)}% expected success`,
-            selectedRootCause.confidence,
-            strategies[0].success_probability,
-            strategies[0].reasoning,
-            [strategies[0].reasoning]
-          )
-          recordDecision(dec)
-          // Record strategy branch under the root cause
-          engine.addBranchNode(null, `${strategies[0].fix_summary.substring(0, 50)}...`, 'strategy', undefined, dec)
-          // Add rejected strategies as sibling branches
-          strategies.slice(1).forEach((alt) => {
-            const reason = alt.strategy_score < 0.4 ? 'Low overall score' :
-              alt.risk_level === 'high' ? 'Risk too high' :
-              alt.success_probability < 0.5 ? 'Insufficient success probability' :
-              `Score ${(alt.strategy_score * 100).toFixed(0)}% vs selected ${(strategies[0].strategy_score * 100).toFixed(0)}%`
-            engine.addBranchNode(null, `${alt.fix_summary.substring(0, 50)}...`, 'strategy', `Rejected — ${reason}`, {
-              ...dec,
-              id: `rejected-${alt.fix_summary.substring(0, 10)}`,
-              outcome: `Rejected: ${reason}`,
-              confidence_before: alt.success_probability,
-              confidence_after: alt.success_probability,
-            })
-          })
-          appendActivity({
-            type: 'strategy_selected',
-            message: `Strategy selected: ${strategies[0].fix_summary.substring(0, 60)}... (${(strategies[0].strategy_score * 100).toFixed(0)}% score)`,
-            status: 'success',
-          })
-        }
+      if (step.id === 'fix') {
+        setPhase('generating')
       }
-      setPhase('generating')
-      setStepIdx(0)
-      setAgent({ label: 'Generating Fix', context: entry.repo, color: 'blue' })
+    } else {
+      setPhase('done')
     }
-  }, [stepIdx, repo, selectedRootCause, setAgent, setMode, recordDecision, appendActivity, engine])
+  }, [stepIdx, setAgent])
 
   const handleGenerateFix = useCallback(() => {
     if (stepIdx < 3) {
@@ -200,9 +81,8 @@ export default function Analysis() {
     }
   }, [stepIdx, repo, selectedStrategy, setAgent, appendActivity])
 
-  // Keep refs in sync with latest callbacks
-  advanceRef.current = handleAdvance
-  generateRef.current = handleGenerateFix
+  useEffect(() => { advanceRef.current = handleAdvance }, [handleAdvance])
+  useEffect(() => { generateRef.current = handleGenerateFix }, [handleGenerateFix])
 
   // Auto-advance through investigation and generating phases
   useEffect(() => {
@@ -266,16 +146,7 @@ export default function Analysis() {
         <SpotlightCard className="p-6">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium text-muted-foreground">Failure Logs</h2>
-            <select
-              value=""
-              onChange={(e) => handleLoadExample(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer max-w-[140px]"
-            >
-              <option value="">Load Example</option>
-              {FAILURE_TYPES.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+
           </div>
           <div className="space-y-4" role="form" aria-label="Analysis input form">
             <div>

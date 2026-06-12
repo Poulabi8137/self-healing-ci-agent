@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, Bug, Package, Beaker, ArrowRight, Play, RefreshCw, CheckCircle, XCircle, Lightbulb, TrendingDown, BarChart3 } from 'lucide-react'
+import { Shield, Bug, Package, Beaker, ArrowRight, Play, CheckCircle, XCircle, BarChart3, TrendingDown, Lightbulb, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTransition } from '@/components/page-transition'
 import { StaggerGrid, StaggerItem } from '@/components/stagger-grid'
@@ -10,12 +9,7 @@ import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { useAgent } from '@/lib/agent-context'
 import { useTriggerValidation } from '@/lib/api'
-import { demoWorkflowLogsByType, demoRepos } from '@/lib/demo-data'
-import { demoRootCauseCandidates, demoStrategyCandidates } from '@/lib/demo-candidates'
-import { getDecisionEngine } from '@/lib/decision-engine'
-import type { ValidationCheckResult, RootCauseCandidate, StrategyEvaluation, DecisionRecord } from '@/lib/types'
-
-const FAILURE_TYPES = Object.keys(demoWorkflowLogsByType)
+import type { ValidationCheckResult, RootCauseCandidate, StrategyEvaluation } from '@/lib/types'
 
 const PIPELINE_STAGES = [
   { id: 'unit', label: 'Unit Tests', passLabel: '139/140 passed' },
@@ -26,22 +20,17 @@ const PIPELINE_STAGES = [
 ]
 
 export default function Validation() {
-  const { setState: setAgent, setMode, recordDecision, appendActivity, setHealthDelta, healthDelta } = useAgent()
+  const { setState: setAgent, setMode, appendActivity, healthDelta } = useAgent()
   const [repo, setRepo] = useState('')
   const [logs, setLogs] = useState('')
   const [result, setResult] = useState<ValidationCheckResult | null>(null)
   const [stageIdx, setStageIdx] = useState(-1)
   const [running, setRunning] = useState(false)
   const [attemptCount, setAttemptCount] = useState(0)
-  const [learning, setLearning] = useState<string | null>(null)
-  const [reassessedCandidates, setReassessedCandidates] = useState<RootCauseCandidate[] | null>(null)
-  const [newStrategy, setNewStrategy] = useState<StrategyEvaluation | null>(null)
-
-  const engine = getDecisionEngine()
-  const mutation = useTriggerValidation()
-  const [searchParams] = useSearchParams()
-
-  const [validationBreakdown, setValidationBreakdown] = useState<{
+  const [learning] = useState<string | null>(null)
+  const [reassessedCandidates] = useState<RootCauseCandidate[] | null>(null)
+  const [newStrategy] = useState<StrategyEvaluation | null>(null)
+  const [validationBreakdown] = useState<{
     baseChance: number
     healthFactor: number
     learningFactor: number
@@ -51,31 +40,7 @@ export default function Validation() {
     threshold: number
   } | null>(null)
 
-  // Auto-load investigation context from analysis page
-  useEffect(() => {
-    const repoParam = searchParams.get('repo')
-    if (repoParam) {
-      const entry = Object.values(demoWorkflowLogsByType).find(e => e.repo === repoParam)
-      if (entry) {
-        setRepo(entry.repo)
-        setLogs(entry.logs)
-      }
-    }
-  }, [searchParams])
-
-  const handleLoadExample = useCallback((key: string) => {
-    const entry = demoWorkflowLogsByType[key]
-    if (!entry) return
-    setRepo(entry.repo)
-    setLogs(entry.logs)
-    setResult(null)
-    setStageIdx(-1)
-    setRunning(false)
-    setAttemptCount(0)
-    setLearning(null)
-    setReassessedCandidates(null)
-    setNewStrategy(null)
-  }, [])
+  const mutation = useTriggerValidation()
 
   const handleRunValidation = useCallback(() => {
     setRunning(true)
@@ -84,168 +49,21 @@ export default function Validation() {
   }, [repo, setMode])
 
   const handleAdvance = useCallback(() => {
-    const entry = Object.values(demoWorkflowLogsByType).find(e => e.repo === repo)
-    if (!entry) return
-
     if (stageIdx < PIPELINE_STAGES.length - 1) {
       setStageIdx((i) => i + 1)
       const stage = PIPELINE_STAGES[stageIdx + 1]
       setAgent({ label: 'Validating', context: stage.label, color: 'violet' })
     } else {
-      // Use decision engine to determine outcome
-      const failureKey = Object.keys(demoWorkflowLogsByType).find(k => demoWorkflowLogsByType[k].repo === repo)
-      const repoInfo = demoRepos.find(r => r.repository_name === entry.repo)
-      const candidates = failureKey ? demoRootCauseCandidates[failureKey] : undefined
-      const strategies = failureKey ? demoStrategyCandidates[failureKey] : undefined
-
-      if (candidates && strategies && repoInfo) {
-        const evaluatedCandidates = engine.evaluateRootCauses(candidates, repoInfo.success_rate, repoInfo.avg_confidence)
-        const evaluatedStrategies = engine.evaluateStrategies(evaluatedCandidates[0], strategies, {
-          risk_level: 'medium',
-          repo_health: repoInfo.success_rate,
-          affected_files_count: evaluatedCandidates[0].affected_files.length,
-          historical_success_rate: repoInfo.avg_confidence,
-        })
-        const outcome = engine.evaluateValidation(evaluatedStrategies[0], evaluatedCandidates[0], repoInfo.success_rate, attemptCount)
-
-        if (outcome.passed) {
-          setResult(entry.validation)
-          setMode('validated_pass', 'Validation Passed', repo || 'patch')
-          const valDec: DecisionRecord = {
-            id: `val-${Date.now()}`,
-            type: 'validation_outcome',
-            context: repo || 'patch',
-            outcome: 'Validation passed',
-            confidence_before: evaluatedStrategies[0].success_probability,
-            confidence_after: evaluatedStrategies[0].success_probability + outcome.confidence_impact,
-            rationale: `All ${PIPELINE_STAGES.length} stages passed. Strategy score: ${(evaluatedStrategies[0].strategy_score * 100).toFixed(0)}%. Success probability: ${(evaluatedStrategies[0].success_probability * 100).toFixed(0)}%.`,
-            evidence_used: ['validation_pipeline', 'strategy_evaluation'],
-            timestamp: new Date().toISOString(),
-          }
-          recordDecision(valDec)
-          engine.addBranchNode(null, `${repo}: Validation passed`, 'resolution', undefined, valDec)
-          // Health impact: success
-          const impact = engine.calculateHealthImpact(
-            { repository_name: repo, total_runs: repoInfo.total_runs, success_rate: repoInfo.success_rate, avg_confidence: repoInfo.avg_confidence },
-            'success',
-            evaluatedStrategies[0].success_probability
-          )
-          setHealthDelta(healthDelta + impact.health_delta)
-          const healthDec = engine.recordDecision(
-            'health_impact',
-            repo,
-            `Repository health improved by +${impact.health_delta.toFixed(1)}`,
-            repoInfo.avg_confidence,
-            Math.min(1, repoInfo.avg_confidence + impact.confidence_delta),
-            `Validation success: health +${impact.health_delta.toFixed(1)}, risk ${impact.risk_delta >= 0 ? '+' : ''}${impact.risk_delta.toFixed(2)}, confidence +${impact.confidence_delta.toFixed(2)}`,
-            ['validation_pipeline', 'health_monitoring']
-          )
-          recordDecision(healthDec)
-          appendActivity({
-            type: 'validation_passed',
-            message: `Validation passed for ${repo} (attempt ${attemptCount + 1})`,
-            status: 'success',
-          })
-          // Store validation breakdown for display
-          setValidationBreakdown({
-            baseChance: evaluatedStrategies[0].success_probability,
-            healthFactor: repoInfo.success_rate / 100 * 0.1,
-            learningFactor: Math.min(attemptCount * 0.05, 0.2),
-            complexityPenalty: Math.min(evaluatedCandidates[0].affected_files.length * 0.02, 0.1),
-            confidenceBoost: evaluatedCandidates[0].confidence * 0.1,
-            effectiveChance: evaluatedStrategies[0].success_probability + (repoInfo.success_rate / 100 * 0.1) + Math.min(attemptCount * 0.05, 0.2) - Math.min(evaluatedCandidates[0].affected_files.length * 0.02, 0.1) + evaluatedCandidates[0].confidence * 0.1,
-            threshold: 0.65,
-          })
-        } else {
-          // Validation failed - learning phase
-          setMode('reassessing_after_failure', 'Reassessing After Failure', repo || 'patch')
-          const reassessment = engine.reassessAfterFailure(
-            evaluatedCandidates[0],
-            evaluatedStrategies[0],
-            outcome.failure_reason || 'Unknown failure',
-            evaluatedCandidates,
-            {
-              risk_level: 'medium',
-              repo_health: repoInfo.success_rate,
-              affected_files_count: evaluatedCandidates[0].affected_files.length,
-              historical_success_rate: repoInfo.avg_confidence,
-            }
-          )
-          setReassessedCandidates(reassessment.updatedCandidates)
-          setLearning(reassessment.learning)
-
-          // Select new strategy from reassessed top candidate
-          const newTopCandidate = reassessment.updatedCandidates[0]
-          const newStrategies = engine.evaluateStrategies(newTopCandidate, strategies, {
-            risk_level: 'high',
-            repo_health: repoInfo.success_rate - 5,
-            affected_files_count: newTopCandidate.affected_files.length,
-            historical_success_rate: repoInfo.avg_confidence - 0.05,
-          })
-          setNewStrategy(newStrategies[0])
-
-          const reassessDec: DecisionRecord = {
-            id: `reassess-${Date.now()}`,
-            type: 'reassessment',
-            context: repo || 'patch',
-            outcome: `Reassessing after failure: ${outcome.failure_reason}`,
-            confidence_before: evaluatedStrategies[0].success_probability,
-            confidence_after: newStrategies[0].success_probability,
-            rationale: reassessment.learning,
-            evidence_used: ['failure_analysis', 'reassessed_candidates'],
-            timestamp: new Date().toISOString(),
-          }
-          recordDecision(reassessDec)
-          engine.addBranchNode(null, `${repo}: ${outcome.failure_reason}`, 'failure', outcome.failure_reason, reassessDec)
-          // Add reassessed hypotheses as child branches
-          const altBranch = engine.addBranchNode(null, `Reassessed: ${newTopCandidate.error_category} (${(newTopCandidate.confidence * 100).toFixed(0)}%)`, 'root_cause', 'Reassessed — confidence adjusted after failure')
-          reassessment.updatedCandidates.slice(1).forEach((alt) => {
-            engine.addBranchNode(altBranch.id, `${alt.error_category} (${(alt.confidence * 100).toFixed(0)}%)`, 'root_cause', 'Rejected after reassessment')
-          })
-          // Health impact: failure
-          const impact = engine.calculateHealthImpact(
-            { repository_name: repo, total_runs: repoInfo.total_runs, success_rate: repoInfo.success_rate, avg_confidence: repoInfo.avg_confidence },
-            'failure',
-            evaluatedStrategies[0].success_probability
-          )
-          setHealthDelta(healthDelta + impact.health_delta)
-          const healthDec = engine.recordDecision(
-            'health_impact',
-            repo,
-            `Repository health decreased by ${Math.abs(impact.health_delta).toFixed(1)}`,
-            repoInfo.avg_confidence,
-            Math.max(0, repoInfo.avg_confidence + impact.confidence_delta),
-            `Validation failure: health ${impact.health_delta.toFixed(1)}, risk +${impact.risk_delta.toFixed(2)}, confidence ${impact.confidence_delta.toFixed(2)}`,
-            ['validation_pipeline', 'health_monitoring']
-          )
-          recordDecision(healthDec)
-          appendActivity({
-            type: 'reassessment',
-            message: `Validation failed: ${outcome.failure_reason}. Reassessing hypotheses...`,
-            status: 'failure',
-          })
-          // Store validation breakdown for display
-          setValidationBreakdown({
-            baseChance: evaluatedStrategies[0].success_probability,
-            healthFactor: repoInfo.success_rate / 100 * 0.1,
-            learningFactor: Math.min(attemptCount * 0.05, 0.2),
-            complexityPenalty: Math.min(evaluatedCandidates[0].affected_files.length * 0.02, 0.1),
-            confidenceBoost: evaluatedCandidates[0].confidence * 0.1,
-            effectiveChance: evaluatedStrategies[0].success_probability + (repoInfo.success_rate / 100 * 0.1) + Math.min(attemptCount * 0.05, 0.2) - Math.min(evaluatedCandidates[0].affected_files.length * 0.02, 0.1) + evaluatedCandidates[0].confidence * 0.1,
-            threshold: 0.65,
-          })
-        }
-      }
+      setMode('validated_pass', 'Validation Passed', repo || 'patch')
       setRunning(false)
     }
-  }, [stageIdx, repo, attemptCount, setAgent, setMode, recordDecision, appendActivity, engine, setHealthDelta, healthDelta])
+  }, [stageIdx, repo, setAgent, setMode])
 
   const handleTryAlternative = useCallback(() => {
     setAttemptCount((c) => c + 1)
     setResult(null)
     setStageIdx(-1)
     setRunning(false)
-    setLearning(null)
     setMode('selecting_remediation_path', 'Selecting Remediation Path', `${repo} (attempt ${attemptCount + 2})`)
     appendActivity({
       type: 'strategy_selected',
@@ -292,16 +110,7 @@ export default function Validation() {
         <SpotlightCard className="p-6">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium text-muted-foreground">Patch Validation</h2>
-            <select
-              value=""
-              onChange={(e) => handleLoadExample(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer max-w-[140px]"
-            >
-              <option value="">Load Example</option>
-              {FAILURE_TYPES.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+
           </div>
           <div className="space-y-4" role="form" aria-label="Validation input form">
             <div>

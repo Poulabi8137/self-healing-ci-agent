@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Activity, GitPullRequest, AlertTriangle, CheckCircle, RotateCw, Wrench, Users, Lightbulb, TrendingUp, Search, Target, RefreshCw, ArrowUpRight } from 'lucide-react'
 import type { ActivityItem } from '@/lib/types'
-import { demoActivities } from '@/lib/demo-data'
 import { timeAgo } from '@/lib/time'
 
 const iconMap: Record<ActivityItem['type'], typeof Activity> = {
@@ -43,7 +42,7 @@ const itemLink: Record<ActivityItem['type'], string> = {
 }
 
 export function ActivityFeed({ items }: { items?: ActivityItem[] }) {
-  const activities = (items ?? demoActivities).slice(0, 20)
+  const activities = (items ?? []).slice(0, 20)
 
   if (activities.length === 0) {
     return (

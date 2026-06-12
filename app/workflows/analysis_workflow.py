@@ -4,6 +4,9 @@ from app.utils.logger import get_logger
 from app.parsers.log_parser import parse_logs
 from app.parsers.error_classifier import classify_error
 from app.agents.debug_agent import DebugAgent
+from app.services.event_manager import event_manager
+from app.database.db import SessionLocal
+from app.database.models import Investigation
 
 logger = get_logger(__name__)
 
@@ -11,6 +14,7 @@ logger = get_logger(__name__)
 async def run_analysis(
     repository_name: str,
     logs: str,
+    investigation_id: int | None = None,
 ) -> Dict[str, Any]:
     """End-to-end analysis workflow: parse → classify → retrieve → reason.
 
@@ -60,6 +64,46 @@ async def run_analysis(
         "raw_failure_type": parsed["failure_type"],
         "raw_failing_file": parsed["failing_file"],
     }
+
+    # 5. Update investigation status and emit events
+    if investigation_id:
+        try:
+            db = SessionLocal()
+            inv = db.query(Investigation).filter(Investigation.id == investigation_id).first()
+            if inv:
+                inv.status = "analyzing"
+                inv.root_cause = analysis["root_cause"]
+                inv.error_category = analysis["error_category"]
+                inv.confidence = analysis["confidence"]
+                inv.current_stage = "root_cause_identified"
+                inv.current_stage_status = "completed"
+                db.commit()
+
+            await event_manager.publish(
+                event_type="investigation_started",
+                data={"repository": repository_name, "analysis_summary": analysis.get("analysis_summary", "")},
+                investigation_id=investigation_id,
+            )
+            await event_manager.publish(
+                event_type="logs_collected",
+                data={"repository": repository_name, "log_size": len(logs)},
+                investigation_id=investigation_id,
+            )
+            await event_manager.publish(
+                event_type="root_cause_identified",
+                data={
+                    "repository": repository_name,
+                    "root_cause": analysis["root_cause"],
+                    "error_category": analysis["error_category"],
+                    "confidence": analysis["confidence"],
+                    "affected_files": analysis["affected_files"],
+                },
+                investigation_id=investigation_id,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to publish analysis events: {e}")
+        finally:
+            db.close()
 
     logger.info(f"Analysis workflow complete for '{repository_name}'")
     return result

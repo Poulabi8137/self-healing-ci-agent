@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts'
-import { Activity, Sparkles, CheckCircle, GitPullRequest, Clock, AlertTriangle, ChevronDown, ExternalLink, TrendingUp, TrendingDown } from 'lucide-react'
+import { Activity, Sparkles, CheckCircle, GitPullRequest, Clock, ChevronDown, ExternalLink, TrendingUp, TrendingDown, AlertCircle, Server, Shield, Bug, Database, Wrench } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { PageTransition } from '@/components/page-transition'
 import { StaggerGrid, StaggerItem } from '@/components/stagger-grid'
@@ -26,10 +26,9 @@ import {
   useDashboardMetrics,
   useDashboardRepositories,
   useChartData,
+  useAnalyticsOverview,
 } from '@/lib/api'
 import { tabContentVariants, safeTransition, duration } from '@/lib/motion'
-import { demoSummary, demoMetrics, demoRepos, demoReviewScores, demoValidationResults, demoPRStatistics, demoActivities } from '@/lib/demo-data'
-import { timeAgo } from '@/lib/time'
 import type {
   DashboardSummary,
   DashboardMetrics,
@@ -37,6 +36,7 @@ import type {
   ReviewScores,
   ValidationResults,
   PRStatistics,
+  AnalyticsOverview,
 } from '@/lib/types'
 
 const tabs = [
@@ -143,14 +143,159 @@ function AgentImpact({ summary }: { summary: DashboardSummary }) {
   )
 }
 
-function OverviewTab({ summary }: { summary: DashboardSummary }) {
+function OverviewTab({ summary, analytics }: { summary: DashboardSummary; analytics?: AnalyticsOverview }) {
   const { system_health: health, confidence } = summary
-  const { setState: setAgent } = useAgent()
 
-  const failures = demoActivities.filter(a => a.type === 'failure_detected').slice(0, 3)
-  const recoveries = demoActivities.filter(a => a.type === 'auto_resolved').slice(0, 3)
+  if (!analytics) {
+    return (
+      <motion.div
+        variants={tabContentVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={safeTransition({ duration: duration.normal })}
+      >
+        <StaggerGrid className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StaggerItem>
+            <MetricCard label="Total Runs" value={health.total_workflow_runs} trend={{ value: 12, positive: true }} />
+          </StaggerItem>
+          <StaggerItem>
+            <MetricCard label="Success Rate" value={health.overall_success_rate} suffix="%" decimals={1} />
+          </StaggerItem>
+          <StaggerItem>
+            <MetricCard label="Avg Retries" value={health.average_retries_per_run} decimals={2} />
+          </StaggerItem>
+          <StaggerItem>
+            <MetricCard label="Confidence" value={confidence.overall_confidence} decimals={2} />
+          </StaggerItem>
+        </StaggerGrid>
+        <div className="mt-6 text-center text-zinc-500 text-sm">Loading analytics...</div>
+      </motion.div>
+    )
+  }
 
-  return (
+  const mttr = analytics.mttr
+  const successRate = analytics.success_rate
+  const failureRate = analytics.failure_rate
+  const autoHeal = analytics.auto_heal_rate
+  const validation = analytics.validation_accuracy
+  const prRate = analytics.pr_acceptance_rate
+
+  // Repository Health component
+  function RepositoryHealth({ health }: { health: AnalyticsOverview['repository_health'] }) {
+    const repos = health.per_repository
+    const repoEntries = Object.entries(repos)
+
+    if (repoEntries.length === 0) {
+      return (
+        <GlassCard className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-zinc-100">Repository Health</h3>
+            <span className="text-xs text-zinc-500">{health.formula}</span>
+          </div>
+          <EmptyState
+            icon={Server}
+            title="No repository data"
+            description="Health scores appear when repositories have activity."
+          />
+        </GlassCard>
+      )
+    }
+
+    function getStatus(score: number): { label: string; color: string; icon: React.ReactNode } {
+      if (score >= 80) return { label: 'Healthy', color: 'bg-emerald-500', icon: <CheckCircle className="h-3 w-3" /> }
+      if (score >= 50) return { label: 'Warning', color: 'bg-amber-500', icon: <AlertCircle className="h-3 w-3" /> }
+      return { label: 'Critical', color: 'bg-red-500', icon: <AlertCircle className="h-3 w-3" /> }
+    }
+
+    return (
+      <GlassCard className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-zinc-100">Repository Health</h3>
+          <span className="text-xs text-zinc-500">{health.formula}</span>
+        </div>
+        <div className="space-y-3">
+          {repoEntries.map(([name, data]) => {
+            const status = getStatus(data.score)
+            return (
+              <div key={name} className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/30 border border-zinc-800">
+                <div className="flex items-center gap-3">
+                  <Server className="h-4 w-4 text-zinc-500" />
+                  <div>
+                    <p className="font-medium text-sm text-zinc-100">{name}</p>
+                    <p className="text-xs text-zinc-500">
+                      {data.recent_failures} failures · {data.passed_validations} validations passed · {data.auto_healed} auto-healed
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${status.color}/20`}>
+                    <span className={status.color}>{status.icon}</span>
+                    <span className="text-xs font-medium text-zinc-100">{status.label}</span>
+                  </div>
+                  <div className="font-mono text-lg font-semibold tabular-nums text-zinc-100">{data.score}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+
+  // Failure Categories component
+  function FailureCategories({ categories }: { categories: AnalyticsOverview['failure_categories'] }) {
+    const breakdown = categories.breakdown
+    const catEntries = Object.entries(breakdown).filter(([, v]) => v.count > 0)
+
+    const icons: Record<string, React.ReactNode> = {
+      syntax: <Bug className="h-3.5 w-3.5" />,
+      dependency: <Database className="h-3.5 w-3.5" />,
+      configuration: <Wrench className="h-3.5 w-3.5" />,
+      test: <Shield className="h-3.5 w-3.5" />,
+      infrastructure: <Server className="h-3.5 w-3.5" />,
+      unknown: <AlertCircle className="h-3.5 w-3.5" />,
+    }
+
+    if (catEntries.length === 0) {
+      return (
+        <GlassCard className="p-6">
+          <h3 className="mb-4 text-sm font-medium text-zinc-100">Failure Categories</h3>
+          <EmptyState
+            icon={Bug}
+            title="No failures recorded"
+            description="Categories appear when failures are detected and categorized."
+          />
+        </GlassCard>
+      )
+    }
+
+    return (
+      <GlassCard className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-zinc-100">Failure Categories</h3>
+          <span className="text-xs text-zinc-500">Total: {categories.total}</span>
+        </div>
+        <div className="space-y-2">
+          {catEntries.map(([cat, data]) => (
+            <div key={cat} className="flex items-center gap-3 p-3 rounded-lg bg-zinc-900/30 border border-zinc-800">
+              <div className="flex items-center gap-2 text-zinc-500">
+                {icons[cat] || <AlertCircle className="h-3.5 w-3.5" />}
+              </div>
+              <span className="text-sm font-medium capitalize text-zinc-100 w-28">{cat}</span>
+              <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500/60 transition-all duration-500"
+                  style={{ width: `${data.percentage}%` }}
+                />
+              </div>
+              <span className="font-mono text-sm tabular-nums text-zinc-400 w-14 text-right">
+                {data.count} ({data.percentage.toFixed(1)}%)
+              </span>
+            </div>
+          ))}
+        </div>
+      )
+    }
     <motion.div
       variants={tabContentVariants}
       initial="initial"
@@ -163,15 +308,40 @@ function OverviewTab({ summary }: { summary: DashboardSummary }) {
           <MetricCard label="Total Runs" value={health.total_workflow_runs} trend={{ value: 12, positive: true }} />
         </StaggerItem>
         <StaggerItem>
-          <MetricCard label="Success Rate" value={health.overall_success_rate} suffix="%" decimals={1} />
+          <MetricCard label="Success Rate" value={successRate.global_success_rate} suffix="%" decimals={1} />
         </StaggerItem>
         <StaggerItem>
-          <MetricCard label="Avg Retries" value={health.average_retries_per_run} decimals={2} />
+          <MetricCard label="MTTR" value={mttr.global_mttr_seconds} suffix="s" decimals={1} />
         </StaggerItem>
         <StaggerItem>
           <MetricCard label="Confidence" value={confidence.overall_confidence} decimals={2} />
         </StaggerItem>
       </StaggerGrid>
+
+      <StaggerGrid className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerItem>
+          <MetricCard label="Failure Rate" value={failureRate.global_failure_rate} suffix="%" decimals={1} />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Auto-Heal Rate" value={autoHeal.global_auto_heal_rate} suffix="%" decimals={1} />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Validation Accuracy" value={validation.overall_accuracy} suffix="%" decimals={1} />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="PR Acceptance" value={prRate.global_pr_acceptance_rate} suffix="%" decimals={1} />
+        </StaggerItem>
+      </StaggerGrid>
+
+      {/* Repository Health */}
+      <div className="mt-6">
+        <RepositoryHealth health={analytics.repository_health} />
+      </div>
+
+      {/* Failure Categories */}
+      <div className="mt-6">
+        <FailureCategories categories={analytics.failure_categories} />
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <ChartCard title="Agent Impact">
@@ -179,42 +349,9 @@ function OverviewTab({ summary }: { summary: DashboardSummary }) {
         </ChartCard>
 
         <ChartCard title="Recent Activity">
-          <div className="space-y-2">
-            {failures.length > 0 && (
-              <div>
-                <p className="text-[10px] font-medium text-red-400/80 uppercase tracking-wider mb-1.5">Recent Failures</p>
-                {failures.map((a) => (
-                  <Link
-                    key={a.id}
-                    to="/analysis"
-                    onClick={() => setAgent({ label: 'Investigating', context: a.repo, color: 'amber' })}
-                    className="flex items-center gap-2 rounded-lg border border-red-500/10 bg-red-500/5 px-3 py-2 hover:bg-red-500/10 transition-colors mb-1"
-                  >
-                    <AlertTriangle className="h-3 w-3 text-red-500 shrink-0" />
-                    <span className="text-[11px] text-zinc-300 truncate flex-1">{a.message}</span>
-                    <span className="text-[10px] text-zinc-600 shrink-0">{timeAgo(a.timestamp)}</span>
-                    <ExternalLink className="h-3 w-3 text-zinc-600 shrink-0" />
-                  </Link>
-                ))}
-              </div>
-            )}
-            {recoveries.length > 0 && (
-              <div className="mt-3">
-                <p className="text-[10px] font-medium text-emerald-400/80 uppercase tracking-wider mb-1.5">Auto-Resolved</p>
-                {recoveries.map((a) => (
-                  <Link
-                    key={a.id}
-                    to="/retry"
-                    className="flex items-center gap-2 rounded-lg border border-emerald-500/10 bg-emerald-500/5 px-3 py-2 hover:bg-emerald-500/10 transition-colors mb-1"
-                  >
-                    <CheckCircle className="h-3 w-3 text-emerald-500 shrink-0" />
-                    <span className="text-[11px] text-zinc-300 truncate flex-1">{a.message}</span>
-                    <span className="text-[10px] text-zinc-600 shrink-0">{timeAgo(a.timestamp)}</span>
-                    <ExternalLink className="h-3 w-3 text-zinc-600 shrink-0" />
-                  </Link>
-                ))}
-              </div>
-            )}
+          <div className="flex flex-col items-center justify-center py-6 text-zinc-600">
+            <Activity className="h-5 w-5 mb-2 opacity-40" />
+            <p className="text-xs">Activity appears here when failures are detected</p>
           </div>
         </ChartCard>
       </div>
@@ -262,7 +399,6 @@ function ReposTab({ repos }: { repos: RepositoryInfo[] }) {
             <tbody>
               {repos.map((r, i) => {
                 const isExpanded = expandedRepo === r.repository_name
-                const repoActivities = demoActivities.filter(a => a.repo === r.repository_name)
                 return (
                   <motion.tr
                     key={r.repository_name}
@@ -301,23 +437,7 @@ function ReposTab({ repos }: { repos: RepositoryInfo[] }) {
                           >
                             <div className="px-8 py-4 bg-zinc-900/30 space-y-3">
                               <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Recent Activity</p>
-                              {repoActivities.length === 0 && (
-                                <p className="text-xs text-zinc-600">No recent activity</p>
-                              )}
-                              {repoActivities.slice(0, 5).map((a) => (
-                                <Link
-                                  key={a.id}
-                                  to={a.type === 'failure_detected' ? '/analysis' : a.type === 'auto_resolved' ? '/retry' : a.type === 'pr_created' ? '/pr' : '/dashboard'}
-                                  className="flex items-center gap-2 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors"
-                                >
-                                  <span className={`h-1.5 w-1.5 rounded-full ${
-                                    a.status === 'success' ? 'bg-emerald-500' :
-                                    a.status === 'failure' ? 'bg-red-500' : 'bg-amber-500'
-                                  }`} />
-                                  <span className="truncate flex-1">{a.message}</span>
-                                  <span className="text-zinc-700 shrink-0">{timeAgo(a.timestamp)}</span>
-                                </Link>
-                              ))}
+                              <p className="text-xs text-zinc-600">Activity appears when the agent detects failures for this repository.</p>
                               <div className="flex gap-2 pt-1">
                                 <Link
                                   to="/analysis"
@@ -453,8 +573,6 @@ function HealthTab({ review }: { review: ReviewScores }) {
 }
 
 function PullRequestsTab({ prStats }: { prStats: PRStatistics }) {
-  const demoPRs = demoActivities.filter(a => a.type === 'pr_created').slice(0, 5)
-
   return (
     <motion.div
       variants={tabContentVariants}
@@ -467,22 +585,6 @@ function PullRequestsTab({ prStats }: { prStats: PRStatistics }) {
         <MetricCard label={prStats.labels[0] ?? 'Auto-generated'} value={prStats.values[0] ?? 0} />
         <MetricCard label={prStats.labels[1] ?? 'Manual'} value={prStats.values[1] ?? 0} />
       </div>
-      {demoPRs.length > 0 && (
-        <div className="mb-6 space-y-1.5">
-          <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider mb-2">Recent Pull Requests</p>
-          {demoPRs.map((pr) => (
-            <Link
-              key={pr.id}
-              to="/pr"
-              className="flex items-center gap-2 rounded-lg border border-border bg-background/50 px-3 py-2 hover:bg-zinc-800/20 transition-colors"
-            >
-              <GitPullRequest className="h-3 w-3 text-blue-500 shrink-0" />
-              <span className="text-[11px] text-zinc-300 truncate flex-1">{pr.message}</span>
-              <span className="text-[10px] text-zinc-600 shrink-0">{timeAgo(pr.timestamp)}</span>
-            </Link>
-          ))}
-        </div>
-      )}
       {prStats.labels.length > 0 ? (
         <ChartCard title="PR Distribution">
           <ResponsiveContainer width="100%" height={280}>
@@ -524,7 +626,9 @@ export default function Dashboard() {
   const { data: validation } = useChartData<ValidationResults>('validation-results')
   const { data: prStats } = useChartData<PRStatistics>('pr-statistics')
 
-  const loading = summaryLoading || metricsLoading || reposLoading
+  const { data: analytics, isLoading: analyticsLoading } = useAnalyticsOverview()
+
+  const loading = summaryLoading || metricsLoading || reposLoading || analyticsLoading
   const totalRepos = repos?.length ?? 0
 
   const { recentActivities, healthDelta, decisions } = useAgent()
@@ -539,7 +643,7 @@ export default function Dashboard() {
   }))
 
   // Combine and sort, but place live activities first when recent
-  const combinedActivities = [...demoActivities, ...liveActivities]
+  const combinedActivities = liveActivities
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 20)
 
@@ -549,25 +653,6 @@ export default function Dashboard() {
   const validationOutcomes = decisions.filter(d => d.type === 'validation_outcome')
   const passCount = validationOutcomes.filter(d => d.outcome === 'Validation passed').length
   const livePassRate = validationOutcomes.length > 0 ? Math.round((passCount / validationOutcomes.length) * 100) : null
-
-  const adjustedSummary = useMemo(() => {
-    if (healthDelta === 0 && decisions.length === 0) return null
-    const base = { ...demoSummary }
-    base.system_health = { ...base.system_health }
-    base.system_health.overall_success_rate = Math.min(100, Math.max(0, Math.round(base.system_health.overall_success_rate + healthDelta * 2)))
-    base.confidence = { ...base.confidence }
-    base.confidence.overall_confidence = Math.min(1, Math.max(0, Math.round((base.confidence.overall_confidence + healthDelta * 0.02) * 100) / 100))
-    return base
-  }, [healthDelta, decisions.length])
-
-  const adjustedRepos = useMemo(() => {
-    if (healthDelta === 0) return null
-    return demoRepos.map(r => ({
-      ...r,
-      success_rate: Math.min(100, Math.max(0, Math.round(r.success_rate + healthDelta * 0.5))),
-      avg_confidence: Math.min(1, Math.max(0, Math.round((r.avg_confidence + healthDelta * 0.01) * 100) / 100)),
-    }))
-  }, [healthDelta])
 
   return (
     <PageTransition>
@@ -626,12 +711,18 @@ export default function Dashboard() {
 
             <div className="mt-6">
               <AnimatePresence mode="wait">
-                {activeTab === 'Overview' && <OverviewTab key="overview" summary={summary ?? adjustedSummary ?? demoSummary} />}
-                {activeTab === 'Repositories' && <ReposTab key="repos" repos={repos ?? adjustedRepos ?? demoRepos} />}
-                {activeTab === 'Recovery' && <RecoveryTab key="retry" metrics={metrics ?? demoMetrics} />}
-                {activeTab === 'Validation' && <ValidationTab key="validation" validation={validation ?? demoValidationResults} />}
-                {activeTab === 'Health' && <HealthTab key="review" review={review ?? demoReviewScores} />}
-                {activeTab === 'Pull Requests' && <PullRequestsTab key="pr" prStats={prStats ?? demoPRStatistics} />}
+                {activeTab === 'Overview' && summary && <OverviewTab key="overview" summary={summary} analytics={analytics} />}
+                {activeTab === 'Overview' && !summary && <EmptyState icon={Activity} title="No data" description="Connect a repository and run workflows to see dashboard data." />}
+                {activeTab === 'Repositories' && repos && <ReposTab key="repos" repos={repos} />}
+                {activeTab === 'Repositories' && !repos && <EmptyState icon={Activity} title="No repositories" description="Repositories appear here when linked via GitHub." />}
+                {activeTab === 'Recovery' && metrics && <RecoveryTab key="retry" metrics={metrics} />}
+                {activeTab === 'Recovery' && !metrics && <EmptyState icon={Activity} title="No recovery data" description="Recovery metrics appear when workflows are retried." />}
+                {activeTab === 'Validation' && validation && <ValidationTab key="validation" validation={validation} />}
+                {activeTab === 'Validation' && !validation && <EmptyState icon={Activity} title="No validation data" description="Validation results appear after fixes are validated." />}
+                {activeTab === 'Health' && review && <HealthTab key="review" review={review} />}
+                {activeTab === 'Health' && !review && <EmptyState icon={Activity} title="No health data" description="Health metrics appear after analysis runs." />}
+                {activeTab === 'Pull Requests' && prStats && <PullRequestsTab key="pr" prStats={prStats} />}
+                {activeTab === 'Pull Requests' && !prStats && <EmptyState icon={Activity} title="No PR data" description="Pull request statistics appear after PRs are created." />}
               </AnimatePresence>
             </div>
           </AnimatedContent>

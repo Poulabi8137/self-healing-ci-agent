@@ -6,8 +6,9 @@ from datetime import datetime, timezone
 
 from app.config.settings import settings
 from app.database.db import SessionLocal
-from app.database.models import WebhookEvent, Repository, Failure, Investigation, InvestigationEvent, GitHubInstallation
+from app.database.models import WebhookEvent, Repository, Failure, Investigation, GitHubInstallation
 from app.services.github_app import get_installation_token, get_workflow_run, get_workflow_run_jobs
+from app.services.event_manager import event_manager
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -178,17 +179,17 @@ def _handle_workflow_run(payload: dict, event_id: int) -> dict:
         db.add(investigation)
         db.flush()
 
-        event = InvestigationEvent(
-            investigation_id=investigation.id,
+        event_manager.publish_sync(
             event_type="failure_detected",
-            data=json.dumps({
+            data={
                 "repository": full_name,
                 "workflow": workflow_name,
                 "run_id": run_id,
                 "failure_id": failure.id,
-            }),
+            },
+            investigation_id=investigation.id,
+            db=db,
         )
-        db.add(event)
         db.commit()
 
         logger.info(f"Failure detected: {full_name} workflow={workflow_name} run_id={run_id} "

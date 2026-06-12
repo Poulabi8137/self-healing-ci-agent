@@ -6,7 +6,7 @@ import { PageTransition } from '@/components/page-transition'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { TiltCard } from '@/components/tilt-card'
 import { EmptyState } from '@/components/empty-state'
-import { demoKeys } from '@/lib/demo-data'
+
 
 interface ApiKey {
   id: string
@@ -81,15 +81,7 @@ function KeyCard({ k, onDelete }: { k: ApiKey; onDelete: (id: string) => void })
 }
 
 export default function AdminKeys() {
-  const [keys, setKeys] = useState<ApiKey[]>(() =>
-    demoKeys.map((k, i) => ({
-      id: `demo-${i}`,
-      prefix: k.prefix,
-      name: k.name,
-      role: k.role,
-      created: k.created,
-      lastUsed: k.lastUsed,
-    }))
+  const [keys, setKeys] = useState<ApiKey[]>(() => []
   )
   const [showForm, setShowForm] = useState(false)
   const [newName, setNewName] = useState('')

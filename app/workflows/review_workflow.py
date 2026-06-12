@@ -5,6 +5,7 @@ from app.utils.logger import get_logger
 from app.agents.review_orchestrator import ReviewOrchestrator
 from app.workflows.retry_workflow import run_retry_workflow
 from app.database.db import SessionLocal
+from app.services.event_manager import event_manager
 
 logger = get_logger(__name__)
 
@@ -63,6 +64,7 @@ async def _save_review_result(
 async def run_review_workflow(
     repository_name: str,
     logs: str,
+    investigation_id: int | None = None,
 ) -> Dict[str, Any]:
     """End-to-end review pipeline: heal → review → recommend.
 
@@ -84,6 +86,7 @@ async def run_review_workflow(
     healing_result = await run_retry_workflow(
         repository_name=repository_name,
         logs=logs,
+        investigation_id=investigation_id,
     )
 
     # 2. Extract final fix and validation

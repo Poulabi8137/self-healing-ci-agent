@@ -8,6 +8,7 @@ from app.agents.retry_agent import RetryAgent
 from app.workflows.fix_generation_workflow import run_fix_generation
 from app.validation.validation_service import validate_fix
 from app.database.db import SessionLocal
+from app.services.event_manager import event_manager
 
 logger = get_logger(__name__)
 
@@ -76,6 +77,7 @@ async def _save_retry_attempt(
 async def run_retry_workflow(
     repository_name: str,
     logs: str,
+    investigation_id: int | None = None,
 ) -> Dict[str, Any]:
     """Autonomous retry loop: analyze → fix → validate → (retry | succeed).
 
@@ -102,6 +104,17 @@ async def run_retry_workflow(
     previous_fix: Optional[Dict[str, Any]] = None
     previous_validation: Optional[Dict[str, Any]] = None
 
+    # Emit logs_collected event
+    if investigation_id:
+        try:
+            await event_manager.publish(
+                event_type="logs_collected",
+                data={"repository": repository_name, "log_size": len(logs)},
+                investigation_id=investigation_id,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to publish logs_collected event: {e}")
+
     while attempt <= max_attempts:
         logger.info(f"Retry attempt {attempt}/{max_attempts}")
 
@@ -110,6 +123,7 @@ async def run_retry_workflow(
             fix_result = await run_fix_generation(
                 repository_name=repository_name,
                 logs=logs,
+                investigation_id=investigation_id,
             )
             # Extract analysis fields from first fix for reuse in retries
             analysis = {

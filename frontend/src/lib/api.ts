@@ -13,6 +13,7 @@ import type {
   IndexStatusResponse,
   TriggerResponse,
   PRCreateResponse,
+  AnalyticsOverview,
 } from './types'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
@@ -27,6 +28,21 @@ export class ApiError extends Error {
     this.status = status
     this.body = body
   }
+}
+
+export async function fetchApi<T = unknown>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+    ...options,
+  })
+  if (!res.ok) {
+    throw new ApiError(res.status, await res.json().catch(() => ({})))
+  }
+  return res.json() as Promise<T>
 }
 
 function getKey(apiKey: string | null) {
@@ -240,5 +256,80 @@ export function useAuthMe() {
     queryKey: ['auth', 'me'],
     queryFn: () => fetchJson<AuthMeResponse>('/auth/me', getKey(apiKey)),
     enabled: !!apiKey,
+  })
+}
+
+// Analytics hooks
+export function useAnalyticsOverview(repositoryId?: number, days?: number) {
+  const { apiKey } = useAuth()
+  const params = new URLSearchParams()
+  if (repositoryId) params.set('repository_id', String(repositoryId))
+  if (days) params.set('days', String(days))
+  const queryString = params.toString() ? `?${params.toString()}` : ''
+
+  return useQuery<AnalyticsOverview>({
+    queryKey: ['analytics', 'overview', repositoryId, days],
+    queryFn: () => fetchJson<AnalyticsOverview>(`/analytics/overview${queryString}`, getKey(apiKey)),
+    enabled: !!apiKey,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useAnalyticsRepositories(repositoryId?: number, days?: number) {
+  const { apiKey } = useAuth()
+  const params = new URLSearchParams()
+  if (repositoryId) params.set('repository_id', String(repositoryId))
+  if (days) params.set('days', String(days))
+  const queryString = params.toString() ? `?${params.toString()}` : ''
+
+  return useQuery({
+    queryKey: ['analytics', 'repositories', repositoryId, days],
+    queryFn: () => fetchJson(`/analytics/repositories${queryString}`, getKey(apiKey)),
+    enabled: !!apiKey,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useAnalyticsFailures(repositoryId?: number, days?: number) {
+  const { apiKey } = useAuth()
+  const params = new URLSearchParams()
+  if (repositoryId) params.set('repository_id', String(repositoryId))
+  if (days) params.set('days', String(days))
+  const queryString = params.toString() ? `?${params.toString()}` : ''
+
+  return useQuery({
+    queryKey: ['analytics', 'failures', repositoryId, days],
+    queryFn: () => fetchJson(`/analytics/failures${queryString}`, getKey(apiKey)),
+    enabled: !!apiKey,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useAnalyticsValidation(repositoryId?: number, days?: number) {
+  const { apiKey } = useAuth()
+  const params = new URLSearchParams()
+  if (repositoryId) params.set('repository_id', String(repositoryId))
+  if (days) params.set('days', String(days))
+  const queryString = params.toString() ? `?${params.toString()}` : ''
+
+  return useQuery({
+    queryKey: ['analytics', 'validation', repositoryId, days],
+    queryFn: () => fetchJson(`/analytics/validation${queryString}`, getKey(apiKey)),
+    enabled: !!apiKey,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useAnalyticsPRs(repositoryId?: number) {
+  const { apiKey } = useAuth()
+  const params = new URLSearchParams()
+  if (repositoryId) params.set('repository_id', String(repositoryId))
+  const queryString = params.toString() ? `?${params.toString()}` : ''
+
+  return useQuery({
+    queryKey: ['analytics', 'prs', repositoryId],
+    queryFn: () => fetchJson(`/analytics/prs${queryString}`, getKey(apiKey)),
+    enabled: !!apiKey,
+    refetchInterval: 60_000,
   })
 }

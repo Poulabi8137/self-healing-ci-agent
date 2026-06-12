@@ -11,7 +11,7 @@ import { MetricCard } from '@/components/metric-card'
 import { AnimatedCounter } from '@/components/animated-counter'
 import { StatusBadge } from '@/components/status-badge'
 import { useChartData } from '@/lib/api'
-import { demoReviewScores } from '@/lib/demo-data'
+
 import { tabContentVariants, safeTransition, duration } from '@/lib/motion'
 import type { ReviewScores } from '@/lib/types'
 
@@ -97,9 +97,9 @@ function DistributionChart({ data }: { data: ReviewScores }) {
 
 export default function Review() {
   const { data: _reviewData } = useChartData<ReviewScores>('review-scores')
-  const data = _reviewData ?? demoReviewScores
+  const data = _reviewData ?? { categories: [], scores: [] }
 
-  const overallScore = Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length)
+  const overallScore = data.scores.length > 0 ? Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length) : 0
 
   if (data.categories.length === 0) {
     return (

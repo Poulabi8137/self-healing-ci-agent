@@ -21,6 +21,10 @@ const PR = lazy(() => import('@/pages/pr'))
 const Indexing = lazy(() => import('@/pages/indexing'))
 const Tasks = lazy(() => import('@/pages/tasks'))
 const AdminKeys = lazy(() => import('@/pages/admin-keys'))
+const Investigations = lazy(() => import('@/pages/investigations'))
+const InvestigationDetail = lazy(() => import('@/pages/investigation-detail'))
+const Notifications = lazy(() => import('@/pages/notifications'))
+const NotificationSettings = lazy(() => import('@/pages/notification-settings'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +69,10 @@ function AnimatedRoutes() {
             <Route path="/analytics" element={<Suspense fallback={<PageLoader />}><Review /></Suspense>} />
             <Route path="/repositories" element={<Suspense fallback={<PageLoader />}><Indexing /></Suspense>} />
             <Route path="/settings" element={<Suspense fallback={<PageLoader />}><AdminKeys /></Suspense>} />
+            <Route path="/investigations" element={<Suspense fallback={<PageLoader />}><Investigations /></Suspense>} />
+            <Route path="/investigations/:id" element={<Suspense fallback={<PageLoader />}><InvestigationDetail /></Suspense>} />
+            <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><Notifications /></Suspense>} />
+            <Route path="/notifications/settings" element={<Suspense fallback={<PageLoader />}><NotificationSettings /></Suspense>} />
           </Route>
         </Route>
       </Routes>

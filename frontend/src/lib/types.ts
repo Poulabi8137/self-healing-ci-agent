@@ -169,6 +169,23 @@ export interface DecisionRecord {
   timestamp: string
 }
 
+export interface SseEvent {
+  id: number
+  investigation_id: number | null
+  event_type: string
+  data: Record<string, unknown>
+  created_at: string
+}
+
+export interface RepositoryStatus {
+  full_name: string
+  is_active: boolean
+  health_status: string
+  last_workflow_status: string | null
+  failure_count: number
+  last_workflow_run_at: string | null
+}
+
 export interface BranchNode {
   id: string
   label: string
@@ -177,4 +194,90 @@ export interface BranchNode {
   children: BranchNode[]
   decision?: DecisionRecord
   status: 'active' | 'completed' | 'failed'
+}
+
+// Analytics Types
+export interface MTTRData {
+  global_mttr_seconds: number
+  global_mttr_formatted: string
+  total_resolved: number
+  per_repository: Record<string, {
+    seconds: number
+    formatted: string
+    investigations_count: number
+  }>
+}
+
+export interface SuccessRateData {
+  global_success_rate: number
+  total_investigations: number
+  successful_investigations: number
+  per_repository: Record<string, {
+    rate: number
+    total: number
+    successful: number
+  }>
+}
+
+export interface FailureRateData {
+  global_failure_rate: number
+  total_failures: number
+  total_executions: number
+  per_repository: Record<string, { failures: number }>
+}
+
+export interface AutoHealRateData {
+  global_auto_heal_rate: number
+  prs_created: number
+  failures_detected: number
+  per_repository: Record<string, unknown>
+}
+
+export interface ValidationAccuracyData {
+  overall_accuracy: number
+  total_validations: number
+  passed_validations: number
+  per_type: Record<string, {
+    accuracy: number
+    total: number
+    passed: number
+  }>
+}
+
+export interface PRAcceptanceRateData {
+  global_pr_acceptance_rate: number
+  total_prs: number
+  merged_prs: number
+  per_repository: Record<string, unknown>
+}
+
+export interface RepositoryHealthData {
+  formula: string
+  per_repository: Record<string, {
+    score: number
+    recent_failures: number
+    passed_validations: number
+    auto_healed: number
+    unresolved_investigations: number
+  }>
+}
+
+export interface FailureCategoriesData {
+  categories: Record<string, number>
+  total: number
+  breakdown: Record<string, {
+    count: number
+    percentage: number
+  }>
+}
+
+export interface AnalyticsOverview {
+  mttr: MTTRData
+  success_rate: SuccessRateData
+  failure_rate: FailureRateData
+  auto_heal_rate: AutoHealRateData
+  validation_accuracy: ValidationAccuracyData
+  pr_acceptance_rate: PRAcceptanceRateData
+  repository_health: RepositoryHealthData
+  failure_categories: FailureCategoriesData
 }

@@ -62,3 +62,11 @@ PRODUCTIONIZATION_PLAN.md
 RELEASE_NOTES.md
 SECURITY.md
 TARGET_VISION_GAP_AUDIT.md
+.anchored-summary.md
+docs/architecture.md
+docs/AUDIT.md
+docs/BLOCKER_RESOLUTION.md
+docs/PRODUCTION_READINESS.md
+docs/workflows.md
+docs/project_report.md
+docs/api_reference.md

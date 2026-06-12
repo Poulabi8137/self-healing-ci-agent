@@ -201,3 +201,31 @@ async def deactivate_repository(
         raise
     finally:
         db.close()
+
+
+@router.get("/repositories/{repo_id}/status")
+async def get_repository_status(
+    repo_id: int,
+    user: User = Depends(get_current_jwt_user),
+):
+    """Get derived health status for a repository."""
+    db = SessionLocal()
+    try:
+        repo = db.query(Repository).filter(Repository.id == repo_id).first()
+        if not repo:
+            raise HTTPException(status_code=404, detail="Repository not found")
+
+        from app.services.status_service import derive_repository_status
+        status = derive_repository_status(repo, db)
+        return {
+            "full_name": repo.full_name,
+            "is_active": repo.is_active,
+            "health_status": status,
+            "last_workflow_status": repo.last_workflow_status,
+            "failure_count": repo.failure_count or 0,
+            "last_workflow_run_at": repo.last_workflow_run_at.isoformat() if repo.last_workflow_run_at else None,
+        }
+    except HTTPException:
+        raise
+    finally:
+        db.close()
