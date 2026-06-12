@@ -239,8 +239,9 @@ function OverviewTab({ summary, analytics }: { summary: DashboardSummary; analyt
             )
           })}
         </div>
-      )
-    }
+      </GlassCard>
+    )
+  }
 
   // Failure Categories component
   function FailureCategories({ categories }: { categories: AnalyticsOverview['failure_categories'] }) {
@@ -294,8 +295,11 @@ function OverviewTab({ summary, analytics }: { summary: DashboardSummary; analyt
             </div>
           ))}
         </div>
-      )
-    }
+      </GlassCard>
+    )
+  }
+
+  return (
     <motion.div
       variants={tabContentVariants}
       initial="initial"
